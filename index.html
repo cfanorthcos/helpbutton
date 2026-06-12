@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Kitchen Alert Board</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f4f6f8;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 20px;
+            gap: 20px;
+        }
+        .header {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 18px;
+            flex: 1;
+        }
+        .alert-btn {
+            border: none;
+            border-radius: 25px; /* Clean bubble style */
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            padding: 28px;
+            min-height: 120px;
+            cursor: pointer;
+            transition: transform .15s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .alert-btn:active {
+            transform: scale(.96);
+        }
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 9999;
+            text-align: center;
+            padding: 40px;
+        }
+        .overlay.show {
+            display: flex;
+        }
+        .message {
+            font-size: clamp(3rem, 8vw, 8rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        .countdown {
+            font-size: clamp(1.5rem, 3vw, 3rem);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">Kitchen Alert Board</div>
+    <div class="button-grid">
+        <!-- Row 1: Fries & Fry Call -->
+        <button class="alert-btn" style="background:#FFC107; color: black;" onclick="showAlert('Fries', '#FFC107', true)">Fries</button>
+        <button class="alert-btn" style="background:#FF6F00;" onclick="showAlert('Need Secondary Fry', '#FF6F00', false)">Need Secondary Fry</button>
+        
+        <!-- Row 2: Primary Line -->
+        <button class="alert-btn" style="background:#E53935;" onclick="showAlert('Primary - Specials', '#E53935', false)">Primary - Specials</button>
+        <button class="alert-btn" style="background:#1565C0;" onclick="showAlert('Primary - Regular', '#1565C0', false)">Primary - Regular</button>
+        <button class="alert-btn" style="background:#8E24AA;" onclick="showAlert('Primary Chutes', '#8E24AA', false)">Primary Chutes</button>
+        
+        <!-- Row 3: Secondary Line -->
+        <button class="alert-btn" style="background:#6D4C41;" onclick="showAlert('Secondary - Nuggets/Strips', '#6D4C41', false)">Secondary - Nuggets/Strips</button>
+        <button class="alert-btn" style="background:#2E7D32;" onclick="showAlert('Secondary - Mac/Salads', '#2E7D32', false)">Secondary - Mac/Salads</button>
+        <button class="alert-btn" style="background:#212121;" onclick="showAlert('Secondary Chutes', '#212121', false)">Secondary Chutes</button>
+    </div>
+</div>
+
+<div id="overlay" class="overlay">
+    <div id="message" class="message"></div>
+    <div id="countdown" class="countdown"></div>
+</div>
+
+<script>
+    let timer;
+    let countdownTimer;
+
+    function showAlert(text, color, isDarkText) {
+        // Clear any active timers
+        clearTimeout(timer);
+        clearInterval(countdownTimer);
+
+        const overlay = document.getElementById("overlay");
+        const message = document.getElementById("message");
+        const countdown = document.getElementById("countdown");
+
+        // Set visual styles dynamically
+        overlay.style.background = color;
+        overlay.style.color = isDarkText ? "black" : "white";
+        message.textContent = text;
+        
+        let seconds = 30;
+        countdown.textContent = `Clearing in ${seconds}s`;
+        overlay.classList.add("show");
+
+        // Dynamic 30-second countdown ticker
+        countdownTimer = setInterval(() => {
+            seconds--;
+            countdown.textContent = `Clearing in ${seconds}s`;
+            if (seconds <= 0) {
+                clearInterval(countdownTimer);
+            }
+        }, 1000);
+
+        // Auto-hide overlay after 30 seconds
+        timer = setTimeout(() => {
+            overlay.classList.remove("show");
+        }, 30000);
+    }
+
+    // Manual clear option: Tap anywhere on the full-screen alert to dismiss it immediately
+    document.getElementById("overlay").addEventListener("click", () => {
+        clearTimeout(timer);
+        clearInterval(countdownTimer);
+        document.getElementById("overlay").classList.remove("show");
+    });
+</script>
+
+</body>
+</html
