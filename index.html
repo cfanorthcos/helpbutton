@@ -1,148 +1,531 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Kitchen Alert Board</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f4f6f8;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            padding: 20px;
-            gap: 20px;
-        }
-        .header {
-            text-align: center;
-            font-size: 2rem;
-            font-weight: 700;
-            color: #333;
-        }
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 18px;
-            flex: 1;
-        }
-        .alert-btn {
-            border: none;
-            border-radius: 25px;
-            color: white;
-            font-size: 1.4rem;
-            font-weight: 700;
-            padding: 28px;
-            min-height: 120px;
-            cursor: pointer;
-            transition: transform .15s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .alert-btn:active {
-            transform: scale(.96);
-        }
-        .overlay {
-            position: fixed;
-            inset: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            z-index: 9999;
-            text-align: center;
-            padding: 40px;
-        }
-        .overlay.show {
-            display: flex;
-        }
-        .message {
-            font-size: clamp(3rem, 8vw, 8rem);
-            font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: 20px;
-        }
-        .countdown {
-            font-size: clamp(1.5rem, 3vw, 3rem);
-            opacity: 0.9;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kitchen Alert Board</title>
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f6f8; height: 100vh; overflow: hidden; }
+
+/* Animations */
+@keyframes fadeDown   { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeUp     { from { opacity: 0; transform: translateY(10px);  } to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn      { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
+@keyframes slideOut   { from { opacity: 1; transform: translateX(0) scale(1); } to { opacity: 0; transform: translateX(-30px) scale(0.95); } }
+@keyframes ripple     { from { transform: scale(0.8); opacity: 0.6; } to { transform: scale(2.2); opacity: 0; } }
+@keyframes overlayIn  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes overlayOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
+@keyframes cardEntrance { from { opacity: 0; transform: scale(0.9) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes checkPop   { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes cardPulse  { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.25); } }
+@keyframes logSlideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes panelIn    { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+@keyframes panelOut   { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(100%); } }
+
+/* Layout */
+.container { display: flex; flex-direction: column; height: 100%; padding: 16px; gap: 12px; }
+
+.top-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  animation: fadeDown 0.4s ease both;
+}
+.header { font-size: 1.8rem; font-weight: 700; color: #333; }
+.top-actions { display: flex; gap: 10px; align-items: center; }
+.icon-btn {
+  background: white; border: 1px solid #ddd; border-radius: 12px;
+  padding: 8px 14px; font-size: 0.85rem; font-weight: 700; color: #555;
+  cursor: pointer; transition: background .2s, transform .15s; display: flex; align-items: center; gap: 6px;
+}
+.icon-btn:hover { background: #eee; }
+.icon-btn:active { transform: scale(.96); }
+
+.timer-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: white; border-radius: 14px; padding: 10px 16px;
+  border: 1px solid #e0e0e0; animation: fadeDown 0.4s ease 0.05s both;
+}
+.timer-bar label { font-size: 0.85rem; font-weight: 700; color: #777; white-space: nowrap; }
+.timer-bar input[type=range] { flex: 1; accent-color: #1a1a2e; }
+.timer-val { font-size: 0.95rem; font-weight: 700; color: #333; min-width: 48px; text-align: right; }
+
+.button-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; flex: 1; }
+.alert-btn {
+  border: none; border-radius: 20px; color: white; font-size: 1.3rem; font-weight: 700;
+  padding: 22px; min-height: 100px; cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.12); position: relative; overflow: hidden;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1), filter .18s, box-shadow .18s;
+  animation: popIn 0.35s cubic-bezier(.34,1.56,.64,1) both;
+}
+.alert-btn:nth-child(1){animation-delay:.05s} .alert-btn:nth-child(2){animation-delay:.10s}
+.alert-btn:nth-child(3){animation-delay:.15s} .alert-btn:nth-child(4){animation-delay:.20s}
+.alert-btn:nth-child(5){animation-delay:.25s} .alert-btn:nth-child(6){animation-delay:.30s}
+.alert-btn:nth-child(7){animation-delay:.35s} .alert-btn:nth-child(8){animation-delay:.40s}
+.alert-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.18); }
+.alert-btn:active { transform: scale(.95) translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.12); }
+.alert-btn.active { outline: 5px solid white; outline-offset: -5px; filter: brightness(1.15); }
+.alert-btn .check { position: absolute; top: 8px; right: 12px; font-size: 1.2rem; opacity: 0; transition: opacity .15s; }
+.alert-btn.active .check { opacity: 0.9; animation: checkPop 0.3s cubic-bezier(.34,1.56,.64,1) both; }
+
+.ripple-circle {
+  position: absolute; border-radius: 50%; background: rgba(255,255,255,0.35);
+  width: 60px; height: 60px; pointer-events: none; animation: ripple 0.55s ease-out forwards;
+}
+
+.footer { display: flex; gap: 12px; align-items: center; animation: fadeUp 0.4s ease 0.45s both; }
+.view-btn {
+  flex: 1; padding: 16px; border-radius: 16px; border: none;
+  background: #333; color: white; font-size: 1.2rem; font-weight: 700;
+  cursor: pointer; opacity: 0.4; pointer-events: none;
+  transition: opacity .25s, background .25s, transform .15s;
+}
+.view-btn.ready { opacity: 1; pointer-events: auto; background: #1a1a2e; }
+.view-btn.ready:hover { background: #2a2a4e; transform: translateY(-1px); }
+.view-btn.ready:active { transform: scale(.97); }
+.clear-btn {
+  padding: 16px 20px; border-radius: 16px; border: none;
+  background: #ccc; color: #333; font-size: 1rem; font-weight: 700;
+  cursor: pointer; display: none; transition: transform .15s, background .2s;
+}
+.clear-btn.visible { display: block; animation: fadeUp 0.3s ease both; }
+.clear-btn:hover { background: #bbb; }
+.clear-btn:active { transform: scale(.97); }
+
+/* Overlay */
+.overlay { position: fixed; inset: 0; flex-direction: column; z-index: 9999; background: #f4f6f8; display: none; }
+.overlay.show { display: flex; animation: overlayIn 0.3s cubic-bezier(.4,0,.2,1) both; }
+.overlay.hide { animation: overlayOut 0.25s ease both; }
+
+.overlay-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background: white; border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0; animation: fadeDown 0.3s ease 0.1s both;
+}
+.overlay-title { color: #333; font-size: 1.2rem; font-weight: 700; }
+.overlay-actions { display: flex; gap: 8px; }
+.overlay-clear-all {
+  background: #f0f0f0; border: none; color: #333;
+  font-size: 0.9rem; font-weight: 700; padding: 8px 16px; border-radius: 20px; cursor: pointer;
+  transition: background .2s, transform .15s;
+}
+.overlay-clear-all:hover { background: #e0e0e0; }
+.overlay-clear-all:active { transform: scale(.96); }
+.overlay-log-btn {
+  background: #1a1a2e; border: none; color: white;
+  font-size: 0.9rem; font-weight: 700; padding: 8px 14px; border-radius: 20px; cursor: pointer;
+  transition: background .2s, transform .15s;
+}
+.overlay-log-btn:hover { background: #2a2a4e; }
+.overlay-log-btn:active { transform: scale(.96); }
+
+.alert-cards { display: flex; flex-direction: row; padding: 14px; gap: 12px; flex: 1; min-height: 0; }
+
+.alert-card {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 24px 16px;
+  border-radius: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  animation: cardEntrance 0.35s cubic-bezier(.34,1.56,.64,1) both;
+  transition: flex 0.3s ease, box-shadow 0.2s;
+}
+.alert-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.22); }
+.alert-card.urgent-flash { animation: cardPulse 0.6s ease-in-out infinite; }
+.alert-card.removing { animation: slideOut 0.25s ease both; }
+
+.alert-card-label { font-size: clamp(1.2rem, 3.5vw, 4rem); font-weight: 900; line-height: 1.1; margin-bottom: 10px; }
+.alert-card-countdown { font-size: clamp(0.95rem, 2.5vw, 1.8rem); font-weight: 700; opacity: 0.75; margin-bottom: 18px; }
+.alert-card-countdown.urgent { opacity: 1; }
+
+.card-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.alert-card-dismiss, .alert-card-repeat {
+  border: 2px solid rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.15); color: white;
+  font-size: 0.85rem; font-weight: 700; padding: 7px 16px;
+  border-radius: 24px; cursor: pointer;
+  transition: background .2s, transform .15s;
+}
+.alert-card-dismiss:hover, .alert-card-repeat:hover { background: rgba(255,255,255,0.28); }
+.alert-card-dismiss:active, .alert-card-repeat:active { transform: scale(.96); }
+.alert-card-repeat { font-size: 0.8rem; opacity: 0.85; }
+
+/* Add row */
+.add-row { flex-shrink: 0; padding: 0 14px 14px; display: flex; flex-direction: column; gap: 8px; animation: fadeUp 0.3s ease 0.15s both; }
+.add-row-label { font-size: 0.8rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.05em; padding-left: 4px; }
+.add-btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.add-btn {
+  border: none; border-radius: 14px; color: white;
+  font-size: 0.85rem; font-weight: 700; padding: 14px 10px;
+  cursor: pointer; position: relative; opacity: 0.85; overflow: hidden;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1), filter .15s, opacity .15s, box-shadow .15s;
+}
+.add-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity: 1; }
+.add-btn:active { transform: scale(.95); }
+.add-btn.active { outline: 4px solid white; outline-offset: -4px; filter: brightness(1.15); opacity: 1; }
+.add-btn .check { position: absolute; top: 5px; right: 8px; font-size: 0.85rem; opacity: 0; transition: opacity .15s; }
+.add-btn.active .check { opacity: 1; animation: checkPop 0.3s cubic-bezier(.34,1.56,.64,1) both; }
+
+/* Log panel */
+.log-panel {
+  position: fixed; inset: 0; z-index: 10000; display: none;
+  flex-direction: column; background: white;
+}
+.log-panel.show { display: flex; animation: panelIn 0.3s cubic-bezier(.4,0,.2,1) both; }
+.log-panel.hide { animation: panelOut 0.25s ease both; }
+.log-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0;
+}
+.log-header-title { font-size: 1.2rem; font-weight: 700; color: #333; }
+.log-close-btn {
+  background: #f0f0f0; border: none; color: #333;
+  font-size: 0.9rem; font-weight: 700; padding: 8px 16px; border-radius: 20px; cursor: pointer;
+}
+.log-close-btn:active { transform: scale(.96); }
+.log-clear-btn {
+  background: none; border: none; color: #999;
+  font-size: 0.85rem; cursor: pointer; padding: 8px 12px; border-radius: 12px;
+  transition: background .2s;
+}
+.log-clear-btn:hover { background: #f0f0f0; color: #555; }
+.log-list { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.log-empty { color: #aaa; font-size: 0.95rem; text-align: center; margin-top: 40px; }
+.log-entry {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 14px; background: #f8f8f8;
+  animation: logSlideIn 0.25s ease both;
+}
+.log-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.log-label { font-size: 0.95rem; font-weight: 700; color: #333; flex: 1; }
+.log-time { font-size: 0.8rem; color: #999; white-space: nowrap; }
+.log-action { font-size: 0.75rem; color: #bbb; white-space: nowrap; }
+</style>
 </head>
 <body>
- 
+
 <div class="container">
+  <div class="top-bar">
     <div class="header">Kitchen Alert Board</div>
-    <div class="button-grid">
-        <!-- Row 1: Fries & Fry Call -->
-        <button class="alert-btn" style="background:#FFC107; color: black;" onclick="showAlert('Fries', '#FFC107', true)">Fries</button>
-        <button class="alert-btn" style="background:#FF6F00;" onclick="showAlert('Need Secondary Fry', '#FF6F00', false)">Need Secondary Fry</button>
-        
-        <!-- Row 2: Primary Line -->
-        <button class="alert-btn" style="background:#E53935;" onclick="showAlert('Primary - Specials', '#E53935', false)">Primary - Specials</button>
-        <button class="alert-btn" style="background:#8E24AA;" onclick="showAlert('Primary Chutes', '#8E24AA', false)">Primary Chutes</button>
-        
-        <!-- Row 3: Secondary Line -->
-        <button class="alert-btn" style="background:#6D4C41;" onclick="showAlert('Secondary - Nuggets/Strips', '#6D4C41', false)">Secondary - Nuggets/Strips</button>
-        <button class="alert-btn" style="background:#2E7D32;" onclick="showAlert('Secondary - Mac/Salads', '#2E7D32', false)">Secondary - Mac/Salads</button>
-        <button class="alert-btn" style="background:#212121;" onclick="showAlert('Secondary Chutes', '#212121', false)">Secondary Chutes</button>
- 
-        <!-- Prep -->
-        <button class="alert-btn" style="background:#00838F;" onclick="showAlert('Prep', '#00838F', false)">Prep</button>
+    <div class="top-actions">
+      <button class="icon-btn" onclick="openLog()">📋 Log</button>
     </div>
+  </div>
+
+  <div class="timer-bar">
+    <label>Timer</label>
+    <input type="range" id="timerRange" min="10" max="120" step="5" value="30" oninput="updateTimerLabel()">
+    <span class="timer-val" id="timerVal">30s</span>
+  </div>
+
+  <div class="button-grid" id="mainGrid"></div>
+
+  <div class="footer">
+    <button class="clear-btn" id="clearBtn" onclick="clearAll()">Clear All</button>
+    <button class="view-btn" id="viewBtn" onclick="showOverlay()">View Alerts</button>
+  </div>
 </div>
- 
+
 <div id="overlay" class="overlay">
-    <div id="message" class="message"></div>
-    <div id="countdown" class="countdown"></div>
+  <div class="overlay-header">
+    <div class="overlay-title" id="overlayTitle">Active Alerts</div>
+    <div class="overlay-actions">
+      <button class="overlay-log-btn" onclick="openLog()">📋 Log</button>
+      <button class="overlay-clear-all" onclick="clearAll()">Clear All</button>
+    </div>
+  </div>
+  <div class="alert-cards" id="alertCards"></div>
+  <div class="add-row">
+    <div class="add-row-label">Add Alert</div>
+    <div class="add-btn-grid" id="addBtnGrid"></div>
+  </div>
 </div>
- 
+
+<div id="logPanel" class="log-panel">
+  <div class="log-header">
+    <div class="log-header-title">Alert History</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="log-clear-btn" onclick="clearLog()">Clear log</button>
+      <button class="log-close-btn" onclick="closeLog()">Done</button>
+    </div>
+  </div>
+  <div class="log-list" id="logList"></div>
+</div>
+
 <script>
-    let timer;
-    let countdownTimer;
- 
-    function showAlert(text, color, isDarkText) {
-        clearTimeout(timer);
-        clearInterval(countdownTimer);
- 
-        const overlay = document.getElementById("overlay");
-        const message = document.getElementById("message");
-        const countdown = document.getElementById("countdown");
- 
-        overlay.style.background = color;
-        overlay.style.color = isDarkText ? "black" : "white";
-        message.textContent = text;
-        
-        let seconds = 30;
-        countdown.textContent = `Clearing in ${seconds}s`;
-        overlay.classList.add("show");
- 
-        countdownTimer = setInterval(() => {
-            seconds--;
-            countdown.textContent = `Clearing in ${seconds}s`;
-            if (seconds <= 0) {
-                clearInterval(countdownTimer);
-            }
-        }, 1000);
- 
-        timer = setTimeout(() => {
-            overlay.classList.remove("show");
-        }, 30000);
+const ALERTS = [
+  { label: 'Fries',                      color: '#FFC107', dark: true },
+  { label: 'Need Secondary Fry',         color: '#FF6F00', dark: false },
+  { label: 'Primary – Specials',         color: '#E53935', dark: false },
+  { label: 'Primary Chutes',             color: '#8E24AA', dark: false },
+  { label: 'Secondary – Nuggets/Strips', color: '#6D4C41', dark: false },
+  { label: 'Secondary – Mac/Salads',     color: '#2E7D32', dark: false },
+  { label: 'Secondary Chutes',           color: '#212121', dark: false },
+  { label: 'Prep',                       color: '#00838F', dark: false },
+];
+
+const activeAlerts = new Map();
+let alertLog = [];
+
+function getTimerStart() {
+  return parseInt(document.getElementById('timerRange').value);
+}
+
+function updateTimerLabel() {
+  document.getElementById('timerVal').textContent = getTimerStart() + 's';
+}
+
+function spawnRipple(btn, e) {
+  const rect = btn.getBoundingClientRect();
+  const x = (e.clientX || rect.left + rect.width / 2) - rect.left;
+  const y = (e.clientY || rect.top + rect.height / 2) - rect.top;
+  const circle = document.createElement('span');
+  circle.className = 'ripple-circle';
+  circle.style.left = (x - 30) + 'px';
+  circle.style.top  = (y - 30) + 'px';
+  btn.appendChild(circle);
+  circle.addEventListener('animationend', () => circle.remove());
+}
+
+function buildMainGrid() {
+  const grid = document.getElementById('mainGrid');
+  ALERTS.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'alert-btn';
+    btn.style.background = a.color;
+    btn.style.color = a.dark ? 'black' : 'white';
+    btn.dataset.label = a.label;
+    btn.innerHTML = `${a.label}<span class="check">✓</span>`;
+    btn.addEventListener('click', e => { spawnRipple(btn, e); toggleAlert(a.label); });
+    grid.appendChild(btn);
+  });
+}
+
+function buildAddGrid() {
+  const grid = document.getElementById('addBtnGrid');
+  ALERTS.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'add-btn';
+    btn.style.background = a.color;
+    btn.style.color = a.dark ? 'black' : 'white';
+    btn.dataset.label = a.label;
+    btn.innerHTML = `${a.label}<span class="check">✓</span>`;
+    btn.addEventListener('click', e => { spawnRipple(btn, e); toggleAlert(a.label); });
+    grid.appendChild(btn);
+  });
+}
+
+function toggleAlert(label) {
+  if (activeAlerts.has(label)) { dismissAlert(label); return; }
+  const a = ALERTS.find(x => x.label === label);
+  const start = getTimerStart();
+  const entry = { color: a.color, isDark: a.dark, seconds: start, totalSeconds: start, intervalId: null, countdownEl: null, cardEl: null };
+  activeAlerts.set(label, entry);
+  addLog(label, a.color, 'triggered');
+
+  entry.intervalId = setInterval(() => {
+    entry.seconds--;
+    if (entry.countdownEl) {
+      entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`;
+      if (entry.seconds <= 5) {
+        entry.countdownEl.classList.add('urgent');
+        if (entry.cardEl) entry.cardEl.classList.add('urgent-flash');
+      }
     }
- 
-    document.getElementById("overlay").addEventListener("click", () => {
-        clearTimeout(timer);
-        clearInterval(countdownTimer);
-        document.getElementById("overlay").classList.remove("show");
-    });
+    if (entry.seconds <= 0) { clearInterval(entry.intervalId); addLog(label, entry.color, 'auto-cleared'); dismissAlert(label); }
+  }, 1000);
+
+  syncButtonStates();
+  updateFooter();
+  if (document.getElementById('overlay').classList.contains('show')) renderCards();
+}
+
+function repeatAlert(label) {
+  const entry = activeAlerts.get(label);
+  if (!entry) return;
+  clearInterval(entry.intervalId);
+  entry.seconds = entry.totalSeconds;
+  if (entry.cardEl) entry.cardEl.classList.remove('urgent-flash');
+  if (entry.countdownEl) {
+    entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`;
+    entry.countdownEl.classList.remove('urgent');
+  }
+  addLog(label, entry.color, 'reset');
+
+  entry.intervalId = setInterval(() => {
+    entry.seconds--;
+    if (entry.countdownEl) {
+      entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`;
+      if (entry.seconds <= 5) {
+        entry.countdownEl.classList.add('urgent');
+        if (entry.cardEl) entry.cardEl.classList.add('urgent-flash');
+      }
+    }
+    if (entry.seconds <= 0) { clearInterval(entry.intervalId); addLog(label, entry.color, 'auto-cleared'); dismissAlert(label); }
+  }, 1000);
+}
+
+function addLog(label, color, action) {
+  const now = new Date();
+  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  alertLog.unshift({ label, color, action, time });
+  if (alertLog.length > 50) alertLog.pop();
+}
+
+function openLog() {
+  renderLog();
+  const panel = document.getElementById('logPanel');
+  panel.classList.remove('hide');
+  panel.classList.add('show');
+}
+
+function closeLog() {
+  const panel = document.getElementById('logPanel');
+  panel.classList.add('hide');
+  panel.addEventListener('animationend', () => panel.classList.remove('show', 'hide'), { once: true });
+}
+
+function clearLog() {
+  alertLog = [];
+  renderLog();
+}
+
+function renderLog() {
+  const list = document.getElementById('logList');
+  if (alertLog.length === 0) {
+    list.innerHTML = '<div class="log-empty">No alerts this session yet.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  alertLog.forEach((entry, i) => {
+    const el = document.createElement('div');
+    el.className = 'log-entry';
+    el.style.animationDelay = (i * 0.03) + 's';
+    const actionLabel = entry.action === 'triggered' ? '🔔 Triggered' : entry.action === 'reset' ? '🔁 Reset' : entry.action === 'dismissed' ? '✓ Dismissed' : '⏱ Auto-cleared';
+    el.innerHTML = `
+      <div class="log-dot" style="background:${entry.color}"></div>
+      <div class="log-label">${entry.label}</div>
+      <div class="log-action">${actionLabel}</div>
+      <div class="log-time">${entry.time}</div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+function syncButtonStates() {
+  document.querySelectorAll('.alert-btn, .add-btn').forEach(btn => {
+    btn.classList.toggle('active', activeAlerts.has(btn.dataset.label));
+  });
+}
+
+function updateFooter() {
+  const viewBtn = document.getElementById('viewBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const count = activeAlerts.size;
+  if (count === 0) {
+    viewBtn.classList.remove('ready');
+    viewBtn.textContent = 'View Alerts';
+    clearBtn.classList.remove('visible');
+  } else {
+    viewBtn.classList.add('ready');
+    viewBtn.textContent = `View ${count} Alert${count > 1 ? 's' : ''} →`;
+    clearBtn.classList.add('visible');
+  }
+}
+
+function renderCards() {
+  const container = document.getElementById('alertCards');
+  container.innerHTML = '';
+  let delay = 0;
+  activeAlerts.forEach((entry, label) => {
+    const card = document.createElement('div');
+    card.className = 'alert-card';
+    card.style.background = entry.color;
+    card.style.color = entry.isDark ? 'black' : 'white';
+    card.style.animationDelay = delay + 's';
+    delay += 0.06;
+    if (entry.seconds <= 5) card.classList.add('urgent-flash');
+    entry.cardEl = card;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'alert-card-label';
+    lbl.textContent = label;
+
+    const cdEl = document.createElement('div');
+    cdEl.className = 'alert-card-countdown' + (entry.seconds <= 5 ? ' urgent' : '');
+    cdEl.textContent = `Clearing in ${entry.seconds}s`;
+    entry.countdownEl = cdEl;
+
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+
+    const repeatBtn = document.createElement('button');
+    repeatBtn.className = 'alert-card-repeat';
+    repeatBtn.textContent = '🔁 Reset Timer';
+    if (entry.isDark) { repeatBtn.style.borderColor = 'rgba(0,0,0,0.3)'; repeatBtn.style.background = 'rgba(0,0,0,0.1)'; repeatBtn.style.color = 'black'; }
+    repeatBtn.onclick = () => repeatAlert(label);
+
+    const dismissBtn = document.createElement('button');
+    dismissBtn.className = 'alert-card-dismiss';
+    dismissBtn.textContent = 'Dismiss';
+    if (entry.isDark) { dismissBtn.style.borderColor = 'rgba(0,0,0,0.3)'; dismissBtn.style.background = 'rgba(0,0,0,0.1)'; dismissBtn.style.color = 'black'; }
+    dismissBtn.onclick = () => animateDismiss(label, card);
+
+    actions.appendChild(repeatBtn);
+    actions.appendChild(dismissBtn);
+    card.appendChild(lbl);
+    card.appendChild(cdEl);
+    card.appendChild(actions);
+    container.appendChild(card);
+  });
+
+  document.getElementById('overlayTitle').textContent =
+    activeAlerts.size === 1 ? 'Active Alert' : `${activeAlerts.size} Active Alerts`;
+}
+
+function animateDismiss(label, cardEl) {
+  if (cardEl) {
+    cardEl.classList.add('removing');
+    cardEl.addEventListener('animationend', () => { addLog(label, activeAlerts.get(label)?.color, 'dismissed'); dismissAlert(label); }, { once: true });
+  } else {
+    dismissAlert(label);
+  }
+}
+
+function dismissAlert(label) {
+  const entry = activeAlerts.get(label);
+  if (!entry) return;
+  clearInterval(entry.intervalId);
+  activeAlerts.delete(label);
+  syncButtonStates();
+  updateFooter();
+  if (activeAlerts.size === 0) closeOverlay();
+  else renderCards();
+}
+
+function showOverlay() {
+  if (activeAlerts.size === 0) return;
+  const overlay = document.getElementById('overlay');
+  overlay.classList.remove('hide');
+  overlay.classList.add('show');
+  renderCards();
+}
+
+function closeOverlay() {
+  const overlay = document.getElementById('overlay');
+  overlay.classList.add('hide');
+  overlay.addEventListener('animationend', () => overlay.classList.remove('show', 'hide'), { once: true });
+}
+
+function clearAll() {
+  activeAlerts.forEach((entry, label) => { clearInterval(entry.intervalId); addLog(label, entry.color, 'dismissed'); });
+  activeAlerts.clear();
+  syncButtonStates();
+  closeOverlay();
+  updateFooter();
+}
+
+buildMainGrid();
+buildAddGrid();
 </script>
- 
+
 </body>
 </html>
