@@ -112,7 +112,47 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 .hold-btn-timer { font-size:1rem; font-weight:900; color:#e8600a; min-height:1.2em; }
 .hold-btn-timer.urgent { color:#d32f2f; animation:cardPulse .6s ease-in-out infinite; }
 
-/* ── Hold overlay cards ── */
+.overlay-back-btn {
+  background:#f0f0f0; border:none; color:#333;
+  font-size:0.9rem; font-weight:700; padding:7px 14px; border-radius:18px; cursor:pointer;
+  transition:background .2s, transform .15s; white-space:nowrap;
+}
+.overlay-back-btn:hover { background:#e0e0e0; }
+.overlay-back-btn:active { transform:scale(.96); }
+.overlay-add-hold-btn {
+  background:#1a1a2e; border:none; color:white;
+  font-size:0.78rem; font-weight:700; padding:5px 12px; border-radius:14px; cursor:pointer;
+  transition:background .2s, transform .15s;
+}
+.overlay-add-hold-btn:hover { background:#2a2a4e; }
+.overlay-add-hold-btn:active { transform:scale(.96); }
+
+/* Hold picker from overlay */
+.hold-picker-backdrop {
+  position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:20000;
+  display:none; align-items:flex-end; justify-content:center;
+}
+.hold-picker-backdrop.show { display:flex; }
+.hold-picker-sheet {
+  background:white; border-radius:24px 24px 0 0; padding:20px; width:100%; max-width:600px;
+  box-shadow:0 -8px 30px rgba(0,0,0,0.2); animation:panelIn .3s cubic-bezier(.4,0,.2,1) both;
+}
+.hold-picker-title { font-size:1rem; font-weight:700; color:#333; margin-bottom:14px; }
+.hold-picker-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; }
+.hold-picker-item {
+  border:1.5px solid #e0e0e0; border-radius:14px; background:#f8f8f8;
+  padding:12px 8px; font-size:0.88rem; font-weight:700; color:#444;
+  cursor:pointer; text-align:center; transition:background .15s, transform .15s;
+}
+.hold-picker-item:hover { background:#eee; }
+.hold-picker-item:active { transform:scale(.96); }
+.hold-picker-item.already-holding { background:#fff8f0; border-color:#e8600a; color:#c85000; }
+.hold-picker-cancel {
+  width:100%; margin-top:12px; padding:12px; border-radius:14px; border:none;
+  background:#f0f0f0; color:#555; font-size:0.95rem; font-weight:700;
+  cursor:pointer; transition:background .2s;
+}
+.hold-picker-cancel:hover { background:#e0e0e0; }
 .hold-overlay-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:8px; }
 .hold-overlay-card {
   border-radius:14px; padding:10px 12px; text-align:center;
@@ -286,6 +326,7 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 <!-- Alert overlay -->
 <div id="overlay" class="overlay">
   <div class="overlay-header">
+    <button class="overlay-back-btn" onclick="closeOverlay()">← Back</button>
     <div class="overlay-title" id="overlayTitle">Active Alerts</div>
     <div class="overlay-actions">
       <button class="overlay-log-btn" onclick="openLog()">📋 Log</button>
@@ -294,7 +335,10 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
   </div>
   <div class="alert-cards" id="alertCards"></div>
   <div class="hold-overlay-section" id="holdOverlaySection" style="display:none; flex-shrink:0; padding:0 12px 10px;">
-    <div class="add-row-label" style="padding:0 4px 6px;">🫳 Holding</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:0 4px 6px;">
+      <div class="add-row-label" style="padding:0;">🫳 Holding</div>
+      <button class="overlay-add-hold-btn" onclick="openHoldPickerFromOverlay()">+ Add Hold</button>
+    </div>
     <div class="hold-overlay-grid" id="holdOverlayGrid"></div>
   </div>
   <div class="add-row">
@@ -320,6 +364,15 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
       <button class="hold-modal-cancel" onclick="closeHoldModal()">Cancel</button>
       <button class="hold-modal-start" onclick="startHold()">Start Timer</button>
     </div>
+  </div>
+</div>
+
+<!-- Hold picker from overlay -->
+<div class="hold-picker-backdrop" id="holdPickerBackdrop">
+  <div class="hold-picker-sheet">
+    <div class="hold-picker-title">Select product to hold</div>
+    <div class="hold-picker-grid" id="holdPickerGrid"></div>
+    <button class="hold-picker-cancel" onclick="closeHoldPicker()">Cancel</button>
   </div>
 </div>
 
@@ -674,8 +727,8 @@ function renderHoldOverlay() {
   const section = document.getElementById('holdOverlaySection');
   const grid = document.getElementById('holdOverlayGrid');
   grid.innerHTML = '';
-  if (holdTimers.size === 0) { section.style.display = 'none'; return; }
-  section.style.display = '';
+  section.style.display = ''; // always visible so + Add Hold is accessible
+  if (holdTimers.size === 0) return;
   let delay = 0;
   holdTimers.forEach((entry, label) => {
     const card = document.createElement('div');
@@ -734,6 +787,32 @@ function renderLog() {
     list.appendChild(el);
   });
 }
+
+// ── Hold picker from overlay ──
+function openHoldPickerFromOverlay() {
+  const grid = document.getElementById('holdPickerGrid');
+  grid.innerHTML = '';
+  HOLD_PRODUCTS.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'hold-picker-item' + (holdTimers.has(p.label) ? ' already-holding' : '');
+    item.textContent = holdTimers.has(p.label) ? `${p.label} ✓` : p.label;
+    item.onclick = () => {
+      closeHoldPicker();
+      openHoldModal(p.label, p.mac);
+    };
+    grid.appendChild(item);
+  });
+  document.getElementById('holdPickerBackdrop').classList.add('show');
+}
+
+function closeHoldPicker() {
+  document.getElementById('holdPickerBackdrop').classList.remove('show');
+}
+
+// Close picker on backdrop tap
+document.getElementById('holdPickerBackdrop').addEventListener('click', e => {
+  if (e.target === document.getElementById('holdPickerBackdrop')) closeHoldPicker();
+});
 
 // ── Fullscreen ──
 function toggleFullscreen() {
