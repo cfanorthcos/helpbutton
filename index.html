@@ -8,222 +8,282 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f6f8; height: 100vh; overflow: hidden; }
 
-/* Animations */
-@keyframes fadeDown   { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeUp     { from { opacity: 0; transform: translateY(10px);  } to { opacity: 1; transform: translateY(0); } }
-@keyframes popIn      { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
-@keyframes slideOut   { from { opacity: 1; transform: translateX(0) scale(1); } to { opacity: 0; transform: translateX(-30px) scale(0.95); } }
-@keyframes ripple     { from { transform: scale(0.8); opacity: 0.6; } to { transform: scale(2.2); opacity: 0; } }
-@keyframes overlayIn  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes overlayOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
-@keyframes cardEntrance { from { opacity: 0; transform: scale(0.9) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-@keyframes checkPop   { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-@keyframes cardPulse  { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.25); } }
-@keyframes logSlideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes panelIn    { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
-@keyframes panelOut   { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(100%); } }
+@keyframes fadeDown    { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeUp      { from { opacity:0; transform:translateY(10px);  } to { opacity:1; transform:translateY(0); } }
+@keyframes popIn       { from { opacity:0; transform:scale(0.88); } to { opacity:1; transform:scale(1); } }
+@keyframes slideOut    { from { opacity:1; transform:translateX(0) scale(1); } to { opacity:0; transform:translateX(-30px) scale(0.95); } }
+@keyframes ripple      { from { transform:scale(0.8); opacity:0.6; } to { transform:scale(2.2); opacity:0; } }
+@keyframes overlayIn   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+@keyframes overlayOut  { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(20px); } }
+@keyframes cardEntrance{ from { opacity:0; transform:scale(0.9) translateY(16px); } to { opacity:1; transform:scale(1) translateY(0); } }
+@keyframes checkPop    { 0%{transform:scale(0);opacity:0;} 60%{transform:scale(1.3);opacity:1;} 100%{transform:scale(1);opacity:1;} }
+@keyframes cardPulse   { 0%,100%{filter:brightness(1);} 50%{filter:brightness(1.25);} }
+@keyframes logSlideIn  { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+@keyframes panelIn     { from { opacity:0; transform:translateY(100%); } to { opacity:1; transform:translateY(0); } }
+@keyframes panelOut    { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(100%); } }
+@keyframes holdSlideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes holdPulse   { 0%,100%{box-shadow:0 4px 16px rgba(0,0,0,0.15);} 50%{box-shadow:0 4px 24px rgba(220,53,53,0.5);} }
 
-/* Layout */
-.container { display: flex; flex-direction: column; height: 100%; padding: 16px; gap: 12px; }
-
-.top-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  animation: fadeDown 0.4s ease both;
-}
-.header { font-size: 1.8rem; font-weight: 700; color: #333; }
-.top-actions { display: flex; gap: 10px; align-items: center; }
+/* ── Main layout ── */
+.container { display:flex; flex-direction:column; height:100%; padding:14px; gap:10px; }
+.top-bar { display:flex; align-items:center; justify-content:flex-end; animation:fadeDown .4s ease both; }
+.top-actions { display:flex; gap:8px; align-items:center; }
 .icon-btn {
-  background: white; border: 1px solid #ddd; border-radius: 12px;
-  padding: 8px 14px; font-size: 0.85rem; font-weight: 700; color: #555;
-  cursor: pointer; transition: background .2s, transform .15s; display: flex; align-items: center; gap: 6px;
+  background:white; border:1px solid #ddd; border-radius:12px;
+  padding:7px 13px; font-size:0.82rem; font-weight:700; color:#555;
+  cursor:pointer; transition:background .2s,transform .15s; display:flex; align-items:center; gap:5px;
 }
-.icon-btn:hover { background: #eee; }
-.icon-btn:active { transform: scale(.96); }
+.icon-btn:hover { background:#eee; }
+.icon-btn:active { transform:scale(.96); }
+.icon-btn.active-mode { background:#1a1a2e; color:white; border-color:#1a1a2e; }
 
-.timer-bar {
-  display: flex; align-items: center; gap: 10px;
-  background: white; border-radius: 14px; padding: 10px 16px;
-  border: 1px solid #e0e0e0; animation: fadeDown 0.4s ease 0.05s both;
+/* ── Timer toggle ── */
+.timer-toggle { display:flex; gap:0; background:white; border:1px solid #e0e0e0; border-radius:14px; overflow:hidden; animation:fadeDown .4s ease .05s both; flex-shrink:0; }
+.timer-opt {
+  flex:1; padding:10px 0; font-size:0.88rem; font-weight:700; color:#888;
+  background:none; border:none; cursor:pointer; transition:background .2s,color .2s;
+  text-align:center;
 }
-.timer-bar label { font-size: 0.85rem; font-weight: 700; color: #777; white-space: nowrap; }
-.timer-bar input[type=range] { flex: 1; accent-color: #1a1a2e; }
-.timer-val { font-size: 0.95rem; font-weight: 700; color: #333; min-width: 48px; text-align: right; }
+.timer-opt.active { background:#1a1a2e; color:white; }
 
-.button-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; flex: 1; }
+/* ── Alert buttons ── */
+.button-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; flex:1; min-height:0; }
 .alert-btn {
-  border: none; border-radius: 20px; color: white; font-size: 1.3rem; font-weight: 700;
-  padding: 22px; min-height: 100px; cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.12); position: relative; overflow: hidden;
-  transition: transform .18s cubic-bezier(.34,1.56,.64,1), filter .18s, box-shadow .18s;
-  animation: popIn 0.35s cubic-bezier(.34,1.56,.64,1) both;
+  border:none; border-radius:20px; color:white; font-size:1.25rem; font-weight:700;
+  padding:20px; min-height:90px; cursor:pointer;
+  box-shadow:0 4px 6px rgba(0,0,0,0.12); position:relative; overflow:hidden;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1),filter .18s,box-shadow .18s;
+  animation:popIn 0.35s cubic-bezier(.34,1.56,.64,1) both;
 }
 .alert-btn:nth-child(1){animation-delay:.05s} .alert-btn:nth-child(2){animation-delay:.10s}
 .alert-btn:nth-child(3){animation-delay:.15s} .alert-btn:nth-child(4){animation-delay:.20s}
 .alert-btn:nth-child(5){animation-delay:.25s} .alert-btn:nth-child(6){animation-delay:.30s}
 .alert-btn:nth-child(7){animation-delay:.35s} .alert-btn:nth-child(8){animation-delay:.40s}
-.alert-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.18); }
-.alert-btn:active { transform: scale(.95) translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.12); }
-.alert-btn.active { outline: 5px solid white; outline-offset: -5px; filter: brightness(1.15); }
-.alert-btn .check { position: absolute; top: 8px; right: 12px; font-size: 1.2rem; opacity: 0; transition: opacity .15s; }
-.alert-btn.active .check { opacity: 0.9; animation: checkPop 0.3s cubic-bezier(.34,1.56,.64,1) both; }
+.alert-btn:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,0,0,0.18); }
+.alert-btn:active { transform:scale(.95) translateY(0); }
+.alert-btn.active { outline:5px solid white; outline-offset:-5px; filter:brightness(1.15); }
+.alert-btn .check { position:absolute; top:8px; right:12px; font-size:1.1rem; opacity:0; transition:opacity .15s; }
+.alert-btn.active .check { opacity:.9; animation:checkPop .3s cubic-bezier(.34,1.56,.64,1) both; }
+.ripple-circle { position:absolute; border-radius:50%; background:rgba(255,255,255,0.35); width:60px; height:60px; pointer-events:none; animation:ripple .55s ease-out forwards; }
 
-.ripple-circle {
-  position: absolute; border-radius: 50%; background: rgba(255,255,255,0.35);
-  width: 60px; height: 60px; pointer-events: none; animation: ripple 0.55s ease-out forwards;
-}
-
-.footer { display: flex; gap: 12px; align-items: center; animation: fadeUp 0.4s ease 0.45s both; }
+/* ── Footer ── */
+.footer { display:flex; gap:10px; align-items:center; animation:fadeUp .4s ease .45s both; flex-shrink:0; }
 .view-btn {
-  flex: 1; padding: 16px; border-radius: 16px; border: none;
-  background: #333; color: white; font-size: 1.2rem; font-weight: 700;
-  cursor: pointer; opacity: 0.4; pointer-events: none;
-  transition: opacity .25s, background .25s, transform .15s;
+  flex:1; padding:14px; border-radius:14px; border:none;
+  background:#333; color:white; font-size:1.1rem; font-weight:700;
+  cursor:pointer; opacity:.4; pointer-events:none;
+  transition:opacity .25s,background .25s,transform .15s;
 }
-.view-btn.ready { opacity: 1; pointer-events: auto; background: #1a1a2e; }
-.view-btn.ready:hover { background: #2a2a4e; transform: translateY(-1px); }
-.view-btn.ready:active { transform: scale(.97); }
+.view-btn.ready { opacity:1; pointer-events:auto; background:#1a1a2e; }
+.view-btn.ready:hover { background:#2a2a4e; transform:translateY(-1px); }
+.view-btn.ready:active { transform:scale(.97); }
 .clear-btn {
-  padding: 16px 20px; border-radius: 16px; border: none;
-  background: #ccc; color: #333; font-size: 1rem; font-weight: 700;
-  cursor: pointer; display: none; transition: transform .15s, background .2s;
+  padding:14px 18px; border-radius:14px; border:none;
+  background:#ccc; color:#333; font-size:0.95rem; font-weight:700;
+  cursor:pointer; display:none; transition:transform .15s,background .2s;
 }
-.clear-btn.visible { display: block; animation: fadeUp 0.3s ease both; }
-.clear-btn:hover { background: #bbb; }
-.clear-btn:active { transform: scale(.97); }
+.clear-btn.visible { display:block; animation:fadeUp .3s ease both; }
+.clear-btn:hover { background:#bbb; }
+.clear-btn:active { transform:scale(.97); }
 
-/* Overlay */
-.overlay { position: fixed; inset: 0; flex-direction: column; z-index: 9999; background: #f4f6f8; display: none; }
-.overlay.show { display: flex; animation: overlayIn 0.3s cubic-bezier(.4,0,.2,1) both; }
-.overlay.hide { animation: overlayOut 0.25s ease both; }
+/* ── HOLD SECTION ── */
+.hold-section { flex-shrink:0; animation:fadeUp .4s ease .3s both; }
+.hold-section-title {
+  font-size:0.78rem; font-weight:700; color:#999; text-transform:uppercase;
+  letter-spacing:.06em; padding:0 4px 6px;
+}
+.hold-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; }
 
+.hold-btn {
+  border:none; border-radius:16px; background:white; border:1.5px solid #e0e0e0;
+  padding:10px 10px; cursor:pointer; font-size:0.85rem; font-weight:700; color:#444;
+  transition:transform .15s,box-shadow .15s,border-color .15s;
+  display:flex; flex-direction:column; align-items:center; gap:4px; position:relative;
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.hold-btn:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+.hold-btn:active { transform:scale(.96); }
+.hold-btn.holding {
+  background:#fff8f0; border-color:#e8600a; color:#c85000;
+  box-shadow:0 4px 16px rgba(232,96,10,0.2);
+  animation:holdPulse 2s ease-in-out infinite;
+}
+.hold-btn-name { font-size:0.82rem; font-weight:700; }
+.hold-btn-timer { font-size:1rem; font-weight:900; color:#e8600a; min-height:1.2em; }
+.hold-btn-timer.urgent { color:#d32f2f; animation:cardPulse .6s ease-in-out infinite; }
+
+/* ── Hold overlay cards ── */
+.hold-overlay-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:8px; }
+.hold-overlay-card {
+  border-radius:14px; padding:10px 12px; text-align:center;
+  background:#fff8f0; border:1.5px solid #e8600a;
+  animation:cardEntrance .3s cubic-bezier(.34,1.56,.64,1) both;
+  cursor:pointer; transition:transform .15s, box-shadow .15s;
+}
+.hold-overlay-card:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(232,96,10,0.2); }
+.hold-overlay-card:active { transform:scale(.96); }
+.hold-overlay-name { font-size:0.78rem; font-weight:700; color:#c85000; }
+.hold-overlay-time { font-size:1.1rem; font-weight:900; color:#e8600a; }
+.hold-overlay-time.urgent { color:#d32f2f; animation:cardPulse .6s ease-in-out infinite; }
+.hold-modal-backdrop {
+  position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:20000;
+  display:none; align-items:center; justify-content:center;
+}
+.hold-modal-backdrop.show { display:flex; }
+.hold-modal {
+  background:white; border-radius:24px; padding:24px; width:88%; max-width:380px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.25); animation:cardEntrance .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.hold-modal-title { font-size:1.2rem; font-weight:700; color:#333; margin-bottom:16px; }
+.hold-quick-btns { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:16px; }
+.hold-quick-btn {
+  border:none; border-radius:12px; background:#f4f6f8; color:#333;
+  font-size:0.9rem; font-weight:700; padding:12px 4px; cursor:pointer;
+  transition:background .15s,transform .15s;
+}
+.hold-quick-btn:hover { background:#e8eaed; }
+.hold-quick-btn:active { transform:scale(.95); }
+.hold-quick-btn.selected { background:#1a1a2e; color:white; }
+.hold-mac-row { display:flex; gap:8px; align-items:center; margin-bottom:16px; }
+.hold-mac-row label { font-size:0.85rem; font-weight:700; color:#777; white-space:nowrap; }
+.hold-mac-input {
+  flex:1; border:1.5px solid #e0e0e0; border-radius:10px; padding:10px 12px;
+  font-size:1rem; font-weight:700; color:#333; outline:none;
+  transition:border-color .2s;
+}
+.hold-mac-input:focus { border-color:#1a1a2e; }
+.hold-modal-actions { display:flex; gap:8px; }
+.hold-modal-start {
+  flex:1; padding:13px; border-radius:14px; border:none;
+  background:#1a1a2e; color:white; font-size:1rem; font-weight:700;
+  cursor:pointer; transition:background .2s,transform .15s;
+}
+.hold-modal-start:hover { background:#2a2a4e; }
+.hold-modal-start:active { transform:scale(.97); }
+.hold-modal-cancel {
+  padding:13px 18px; border-radius:14px; border:none;
+  background:#f0f0f0; color:#555; font-size:1rem; font-weight:700;
+  cursor:pointer; transition:background .2s,transform .15s;
+}
+.hold-modal-cancel:hover { background:#e0e0e0; }
+.hold-modal-cancel:active { transform:scale(.97); }
+
+/* ── Alert overlay ── */
+.overlay { position:fixed; inset:0; flex-direction:column; z-index:9999; background:#f4f6f8; display:none; }
+.overlay.show { display:flex; animation:overlayIn .3s cubic-bezier(.4,0,.2,1) both; }
+.overlay.hide { animation:overlayOut .25s ease both; }
 .overlay-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px; background: white; border-bottom: 1px solid #e0e0e0;
-  flex-shrink: 0; animation: fadeDown 0.3s ease 0.1s both;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px; background:white; border-bottom:1px solid #e0e0e0; flex-shrink:0;
+  animation:fadeDown .3s ease .1s both;
 }
-.overlay-title { color: #333; font-size: 1.2rem; font-weight: 700; }
-.overlay-actions { display: flex; gap: 8px; }
+.overlay-title { color:#333; font-size:1.1rem; font-weight:700; }
+.overlay-actions { display:flex; gap:8px; }
 .overlay-clear-all {
-  background: #f0f0f0; border: none; color: #333;
-  font-size: 0.9rem; font-weight: 700; padding: 8px 16px; border-radius: 20px; cursor: pointer;
-  transition: background .2s, transform .15s;
+  background:#f0f0f0; border:none; color:#333;
+  font-size:0.85rem; font-weight:700; padding:7px 14px; border-radius:18px; cursor:pointer;
+  transition:background .2s,transform .15s;
 }
-.overlay-clear-all:hover { background: #e0e0e0; }
-.overlay-clear-all:active { transform: scale(.96); }
+.overlay-clear-all:hover { background:#e0e0e0; }
+.overlay-clear-all:active { transform:scale(.96); }
 .overlay-log-btn {
-  background: #1a1a2e; border: none; color: white;
-  font-size: 0.9rem; font-weight: 700; padding: 8px 14px; border-radius: 20px; cursor: pointer;
-  transition: background .2s, transform .15s;
+  background:#1a1a2e; border:none; color:white;
+  font-size:0.85rem; font-weight:700; padding:7px 13px; border-radius:18px; cursor:pointer;
+  transition:background .2s,transform .15s;
 }
-.overlay-log-btn:hover { background: #2a2a4e; }
-.overlay-log-btn:active { transform: scale(.96); }
+.overlay-log-btn:hover { background:#2a2a4e; }
+.overlay-log-btn:active { transform:scale(.96); }
 
-.alert-cards { display: flex; flex-direction: row; padding: 14px; gap: 12px; flex: 1; min-height: 0; }
-
+.alert-cards { display:flex; flex-direction:row; padding:12px; gap:10px; flex:1; min-height:0; }
 .alert-card {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  text-align: center; padding: 24px 16px;
-  border-radius: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-  animation: cardEntrance 0.35s cubic-bezier(.34,1.56,.64,1) both;
-  transition: flex 0.3s ease, box-shadow 0.2s;
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:22px 14px; border-radius:22px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.18);
+  animation:cardEntrance .35s cubic-bezier(.34,1.56,.64,1) both;
+  transition:flex .3s ease,box-shadow .2s;
 }
-.alert-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.22); }
-.alert-card.urgent-flash { animation: cardPulse 0.6s ease-in-out infinite; }
-.alert-card.removing { animation: slideOut 0.25s ease both; }
-
-.alert-card-label { font-size: clamp(1.2rem, 3.5vw, 4rem); font-weight: 900; line-height: 1.1; margin-bottom: 10px; }
-.alert-card-countdown { font-size: clamp(0.95rem, 2.5vw, 1.8rem); font-weight: 700; opacity: 0.75; margin-bottom: 18px; }
-.alert-card-countdown.urgent { opacity: 1; }
-
-.card-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.alert-card-dismiss, .alert-card-repeat {
-  border: 2px solid rgba(255,255,255,0.5);
-  background: rgba(255,255,255,0.15); color: white;
-  font-size: 0.85rem; font-weight: 700; padding: 7px 16px;
-  border-radius: 24px; cursor: pointer;
-  transition: background .2s, transform .15s;
+.alert-card:hover { box-shadow:0 8px 24px rgba(0,0,0,0.22); }
+.alert-card.urgent-flash { animation:cardPulse .6s ease-in-out infinite; }
+.alert-card.removing { animation:slideOut .25s ease both; }
+.alert-card-label { font-size:clamp(1.1rem,3.5vw,4rem); font-weight:900; line-height:1.1; margin-bottom:10px; }
+.alert-card-countdown { font-size:clamp(0.9rem,2.2vw,1.7rem); font-weight:700; opacity:.75; margin-bottom:16px; }
+.alert-card-countdown.urgent { opacity:1; }
+.card-actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+.alert-card-dismiss,.alert-card-repeat {
+  border:2px solid rgba(255,255,255,0.5); background:rgba(255,255,255,0.15); color:white;
+  font-size:0.82rem; font-weight:700; padding:7px 14px; border-radius:22px; cursor:pointer;
+  transition:background .2s,transform .15s;
 }
-.alert-card-dismiss:hover, .alert-card-repeat:hover { background: rgba(255,255,255,0.28); }
-.alert-card-dismiss:active, .alert-card-repeat:active { transform: scale(.96); }
-.alert-card-repeat { font-size: 0.8rem; opacity: 0.85; }
+.alert-card-dismiss:hover,.alert-card-repeat:hover { background:rgba(255,255,255,0.28); }
+.alert-card-dismiss:active,.alert-card-repeat:active { transform:scale(.96); }
 
-/* Add row */
-.add-row { flex-shrink: 0; padding: 0 14px 14px; display: flex; flex-direction: column; gap: 8px; animation: fadeUp 0.3s ease 0.15s both; }
-.add-row-label { font-size: 0.8rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.05em; padding-left: 4px; }
-.add-btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.add-row { flex-shrink:0; padding:0 12px 12px; display:flex; flex-direction:column; gap:6px; animation:fadeUp .3s ease .15s both; }
+.add-row-label { font-size:0.78rem; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.05em; padding-left:4px; }
+.add-btn-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:7px; }
 .add-btn {
-  border: none; border-radius: 14px; color: white;
-  font-size: 0.85rem; font-weight: 700; padding: 14px 10px;
-  cursor: pointer; position: relative; opacity: 0.85; overflow: hidden;
-  transition: transform .18s cubic-bezier(.34,1.56,.64,1), filter .15s, opacity .15s, box-shadow .15s;
+  border:none; border-radius:13px; color:white; font-size:0.82rem; font-weight:700; padding:12px 8px;
+  cursor:pointer; position:relative; opacity:.85; overflow:hidden;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1),filter .15s,opacity .15s,box-shadow .15s;
 }
-.add-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity: 1; }
-.add-btn:active { transform: scale(.95); }
-.add-btn.active { outline: 4px solid white; outline-offset: -4px; filter: brightness(1.15); opacity: 1; }
-.add-btn .check { position: absolute; top: 5px; right: 8px; font-size: 0.85rem; opacity: 0; transition: opacity .15s; }
-.add-btn.active .check { opacity: 1; animation: checkPop 0.3s cubic-bezier(.34,1.56,.64,1) both; }
+.add-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.2); opacity:1; }
+.add-btn:active { transform:scale(.95); }
+.add-btn.active { outline:4px solid white; outline-offset:-4px; filter:brightness(1.15); opacity:1; }
+.add-btn .check { position:absolute; top:4px; right:7px; font-size:0.82rem; opacity:0; transition:opacity .15s; }
+.add-btn.active .check { opacity:1; animation:checkPop .3s cubic-bezier(.34,1.56,.64,1) both; }
 
-/* Log panel */
-.log-panel {
-  position: fixed; inset: 0; z-index: 10000; display: none;
-  flex-direction: column; background: white;
-}
-.log-panel.show { display: flex; animation: panelIn 0.3s cubic-bezier(.4,0,.2,1) both; }
-.log-panel.hide { animation: panelOut 0.25s ease both; }
-.log-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0;
-}
-.log-header-title { font-size: 1.2rem; font-weight: 700; color: #333; }
-.log-close-btn {
-  background: #f0f0f0; border: none; color: #333;
-  font-size: 0.9rem; font-weight: 700; padding: 8px 16px; border-radius: 20px; cursor: pointer;
-}
-.log-close-btn:active { transform: scale(.96); }
-.log-clear-btn {
-  background: none; border: none; color: #999;
-  font-size: 0.85rem; cursor: pointer; padding: 8px 12px; border-radius: 12px;
-  transition: background .2s;
-}
-.log-clear-btn:hover { background: #f0f0f0; color: #555; }
-.log-list { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
-.log-empty { color: #aaa; font-size: 0.95rem; text-align: center; margin-top: 40px; }
-.log-entry {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 14px; border-radius: 14px; background: #f8f8f8;
-  animation: logSlideIn 0.25s ease both;
-}
-.log-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-.log-label { font-size: 0.95rem; font-weight: 700; color: #333; flex: 1; }
-.log-time { font-size: 0.8rem; color: #999; white-space: nowrap; }
-.log-action { font-size: 0.75rem; color: #bbb; white-space: nowrap; }
+/* ── Log panel ── */
+.log-panel { position:fixed; inset:0; z-index:10000; display:none; flex-direction:column; background:white; }
+.log-panel.show { display:flex; animation:panelIn .3s cubic-bezier(.4,0,.2,1) both; }
+.log-panel.hide { animation:panelOut .25s ease both; }
+.log-header { display:flex; align-items:center; justify-content:space-between; padding:15px 18px; border-bottom:1px solid #e0e0e0; flex-shrink:0; }
+.log-header-title { font-size:1.1rem; font-weight:700; color:#333; }
+.log-close-btn { background:#f0f0f0; border:none; color:#333; font-size:0.85rem; font-weight:700; padding:7px 14px; border-radius:18px; cursor:pointer; }
+.log-close-btn:active { transform:scale(.96); }
+.log-clear-btn { background:none; border:none; color:#999; font-size:0.82rem; cursor:pointer; padding:7px 11px; border-radius:11px; transition:background .2s; }
+.log-clear-btn:hover { background:#f0f0f0; color:#555; }
+.log-list { flex:1; overflow-y:auto; padding:10px 14px; display:flex; flex-direction:column; gap:7px; }
+.log-empty { color:#aaa; font-size:0.92rem; text-align:center; margin-top:40px; }
+.log-entry { display:flex; align-items:center; gap:10px; padding:9px 13px; border-radius:13px; background:#f8f8f8; animation:logSlideIn .25s ease both; }
+.log-dot { width:11px; height:11px; border-radius:50%; flex-shrink:0; }
+.log-label { font-size:0.9rem; font-weight:700; color:#333; flex:1; }
+.log-time { font-size:0.76rem; color:#999; white-space:nowrap; }
+.log-action { font-size:0.72rem; color:#bbb; white-space:nowrap; }
 </style>
 </head>
 <body>
 
 <div class="container">
+  <!-- Top bar -->
   <div class="top-bar">
-    <div class="header">Kitchen Alert Board</div>
     <div class="top-actions">
+      <button class="icon-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Fullscreen">⛶ Fullscreen</button>
       <button class="icon-btn" onclick="openLog()">📋 Log</button>
     </div>
   </div>
 
-  <div class="timer-bar">
-    <label>Timer</label>
-    <input type="range" id="timerRange" min="10" max="120" step="5" value="30" oninput="updateTimerLabel()">
-    <span class="timer-val" id="timerVal">30s</span>
+  <!-- Timer toggle -->
+  <div class="timer-toggle">
+    <button class="timer-opt active" id="timerOpt30" onclick="setTimerMode('30')">⏱ 30 Second</button>
+    <button class="timer-opt" id="timerOptUnlim" onclick="setTimerMode('unlimited')">∞ Dismiss Only</button>
   </div>
 
+  <!-- Alert buttons -->
   <div class="button-grid" id="mainGrid"></div>
 
+  <!-- Hold section -->
+  <div class="hold-section">
+    <div class="hold-section-title">🫳 Holding</div>
+    <div class="hold-grid" id="holdGrid"></div>
+  </div>
+
+  <!-- Footer -->
   <div class="footer">
     <button class="clear-btn" id="clearBtn" onclick="clearAll()">Clear All</button>
     <button class="view-btn" id="viewBtn" onclick="showOverlay()">View Alerts</button>
   </div>
 </div>
 
+<!-- Alert overlay -->
 <div id="overlay" class="overlay">
   <div class="overlay-header">
     <div class="overlay-title" id="overlayTitle">Active Alerts</div>
@@ -233,12 +293,37 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
     </div>
   </div>
   <div class="alert-cards" id="alertCards"></div>
+  <div class="hold-overlay-section" id="holdOverlaySection" style="display:none; flex-shrink:0; padding:0 12px 10px;">
+    <div class="add-row-label" style="padding:0 4px 6px;">🫳 Holding</div>
+    <div class="hold-overlay-grid" id="holdOverlayGrid"></div>
+  </div>
   <div class="add-row">
     <div class="add-row-label">Add Alert</div>
     <div class="add-btn-grid" id="addBtnGrid"></div>
   </div>
 </div>
 
+<!-- Hold modal -->
+<div class="hold-modal-backdrop" id="holdModalBackdrop">
+  <div class="hold-modal" id="holdModal">
+    <div class="hold-modal-title" id="holdModalTitle">Set Hold Timer</div>
+    <div id="holdQuickSection">
+      <div class="hold-quick-btns" id="holdQuickBtns"></div>
+    </div>
+    <div id="holdMacSection" style="display:none;">
+      <div class="hold-mac-row">
+        <label>Minutes</label>
+        <input class="hold-mac-input" type="number" id="holdMacInput" min="1" max="60" placeholder="e.g. 8">
+      </div>
+    </div>
+    <div class="hold-modal-actions">
+      <button class="hold-modal-cancel" onclick="closeHoldModal()">Cancel</button>
+      <button class="hold-modal-start" onclick="startHold()">Start Timer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log panel -->
 <div id="logPanel" class="log-panel">
   <div class="log-header">
     <div class="log-header-title">Alert History</div>
@@ -252,39 +337,56 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 
 <script>
 const ALERTS = [
-  { label: 'Fries',                      color: '#FFC107', dark: true },
-  { label: 'Need Secondary Fry',         color: '#FF6F00', dark: false },
-  { label: 'Primary – Specials',         color: '#E53935', dark: false },
-  { label: 'Primary Chutes',             color: '#8E24AA', dark: false },
-  { label: 'Secondary – Nuggets/Strips', color: '#6D4C41', dark: false },
-  { label: 'Secondary – Mac/Salads',     color: '#2E7D32', dark: false },
-  { label: 'Secondary Chutes',           color: '#212121', dark: false },
-  { label: 'Prep',                       color: '#00838F', dark: false },
+  { label:'Fries',                      color:'#FFC107', dark:true  },
+  { label:'Need Secondary Fry',         color:'#FF6F00', dark:false },
+  { label:'Primary – Specials',         color:'#E53935', dark:false },
+  { label:'Primary Chutes',             color:'#8E24AA', dark:false },
+  { label:'Secondary – Nuggets/Strips', color:'#6D4C41', dark:false },
+  { label:'Secondary – Mac/Salads',     color:'#2E7D32', dark:false },
+  { label:'Secondary Chutes',           color:'#212121', dark:false },
+  { label:'Prep',                       color:'#00838F', dark:false },
 ];
 
+const HOLD_PRODUCTS = [
+  { label:'Filet',          mac:false },
+  { label:'Spicy',          mac:false },
+  { label:'Nuggets',        mac:false },
+  { label:'Strips',         mac:false },
+  { label:'Grilled Nuggets',mac:false },
+  { label:'Grilled Filet',  mac:false },
+  { label:'Mac & Cheese',   mac:true  },
+];
+
+// Quick times in seconds: 1m–5m
+const QUICK_TIMES = [60,120,180,240,300];
+
 const activeAlerts = new Map();
-let alertLog = [];
+const holdTimers   = new Map(); // label -> { seconds, totalSeconds, intervalId, timerEl, btnEl }
+let alertLog   = [];
+let timerMode  = '30';
+let holdTarget = null; // product label currently being set
+let selectedQuick = null;
 
-function getTimerStart() {
-  return parseInt(document.getElementById('timerRange').value);
+// ── Timer toggle ──
+function setTimerMode(mode) {
+  timerMode = mode;
+  document.getElementById('timerOpt30').classList.toggle('active', mode === '30');
+  document.getElementById('timerOptUnlim').classList.toggle('active', mode === 'unlimited');
 }
 
-function updateTimerLabel() {
-  document.getElementById('timerVal').textContent = getTimerStart() + 's';
-}
-
+// ── Ripple ──
 function spawnRipple(btn, e) {
   const rect = btn.getBoundingClientRect();
-  const x = (e.clientX || rect.left + rect.width / 2) - rect.left;
-  const y = (e.clientY || rect.top + rect.height / 2) - rect.top;
-  const circle = document.createElement('span');
-  circle.className = 'ripple-circle';
-  circle.style.left = (x - 30) + 'px';
-  circle.style.top  = (y - 30) + 'px';
-  btn.appendChild(circle);
-  circle.addEventListener('animationend', () => circle.remove());
+  const x = (e.clientX || rect.left + rect.width/2) - rect.left;
+  const y = (e.clientY || rect.top  + rect.height/2) - rect.top;
+  const c = document.createElement('span');
+  c.className = 'ripple-circle';
+  c.style.left = (x-30)+'px'; c.style.top = (y-30)+'px';
+  btn.appendChild(c);
+  c.addEventListener('animationend', () => c.remove());
 }
 
+// ── Build grids ──
 function buildMainGrid() {
   const grid = document.getElementById('mainGrid');
   ALERTS.forEach(a => {
@@ -294,7 +396,7 @@ function buildMainGrid() {
     btn.style.color = a.dark ? 'black' : 'white';
     btn.dataset.label = a.label;
     btn.innerHTML = `${a.label}<span class="check">✓</span>`;
-    btn.addEventListener('click', e => { spawnRipple(btn, e); toggleAlert(a.label); });
+    btn.addEventListener('click', e => { spawnRipple(btn,e); toggleAlert(a.label); });
     grid.appendChild(btn);
   });
 }
@@ -308,127 +410,196 @@ function buildAddGrid() {
     btn.style.color = a.dark ? 'black' : 'white';
     btn.dataset.label = a.label;
     btn.innerHTML = `${a.label}<span class="check">✓</span>`;
-    btn.addEventListener('click', e => { spawnRipple(btn, e); toggleAlert(a.label); });
+    btn.addEventListener('click', e => { spawnRipple(btn,e); toggleAlert(a.label); });
     grid.appendChild(btn);
   });
 }
 
-function toggleAlert(label) {
-  if (activeAlerts.has(label)) { dismissAlert(label); return; }
-  const a = ALERTS.find(x => x.label === label);
-  const start = getTimerStart();
-  const entry = { color: a.color, isDark: a.dark, seconds: start, totalSeconds: start, intervalId: null, countdownEl: null, cardEl: null };
-  activeAlerts.set(label, entry);
-  addLog(label, a.color, 'triggered');
+function buildHoldGrid() {
+  const grid = document.getElementById('holdGrid');
+  HOLD_PRODUCTS.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'hold-btn';
+    btn.dataset.label = p.label;
+    btn.innerHTML = `<div class="hold-btn-name">${p.label}</div><div class="hold-btn-timer" id="holdTimer_${p.label.replace(/\s/g,'_')}"></div>`;
+    btn.addEventListener('click', () => openHoldModal(p.label, p.mac));
+    grid.appendChild(btn);
+  });
+}
+
+// ── Hold modal ──
+function openHoldModal(label, isMac) {
+  holdTarget = label;
+  selectedQuick = null;
+  document.getElementById('holdModalTitle').textContent = `Hold: ${label}`;
+  document.getElementById('holdQuickSection').style.display = isMac ? 'none' : '';
+  document.getElementById('holdMacSection').style.display  = isMac ? '' : 'none';
+  document.getElementById('holdMacInput').value = '';
+
+  if (!isMac) {
+    const container = document.getElementById('holdQuickBtns');
+    container.innerHTML = '';
+    QUICK_TIMES.forEach(sec => {
+      const b = document.createElement('button');
+      b.className = 'hold-quick-btn';
+      b.textContent = (sec/60) + 'm';
+      b.onclick = () => {
+        container.querySelectorAll('.hold-quick-btn').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+        selectedQuick = sec;
+      };
+      // Pre-select if already holding
+      if (holdTimers.has(label) && holdTimers.get(label).totalSeconds === sec) {
+        b.classList.add('selected'); selectedQuick = sec;
+      }
+      container.appendChild(b);
+    });
+  }
+
+  document.getElementById('holdModalBackdrop').classList.add('show');
+}
+
+function closeHoldModal() {
+  document.getElementById('holdModalBackdrop').classList.remove('show');
+  holdTarget = null; selectedQuick = null;
+}
+
+function startHold() {
+  if (!holdTarget) return;
+  const prod = HOLD_PRODUCTS.find(p => p.label === holdTarget);
+  let seconds;
+  if (prod.mac) {
+    const val = parseInt(document.getElementById('holdMacInput').value);
+    if (!val || val < 1) { document.getElementById('holdMacInput').focus(); return; }
+    seconds = val * 60;
+  } else {
+    if (!selectedQuick) return;
+    seconds = selectedQuick;
+  }
+
+  // Clear existing if any
+  if (holdTimers.has(holdTarget)) clearInterval(holdTimers.get(holdTarget).intervalId);
+
+  const entry = { seconds, totalSeconds: seconds, intervalId: null, timerEl: null, btnEl: null };
+  holdTimers.set(holdTarget, entry);
+  addLog(holdTarget, '#e8600a', 'hold started');
+
+  const key = holdTarget.replace(/\s/g,'_');
+  const timerEl = document.getElementById(`holdTimer_${key}`);
+  const btnEl   = timerEl?.closest('.hold-btn');
+  entry.timerEl = timerEl;
+  entry.btnEl   = btnEl;
+  if (btnEl) btnEl.classList.add('holding');
+  if (timerEl) timerEl.textContent = formatHoldTime(seconds);
 
   entry.intervalId = setInterval(() => {
     entry.seconds--;
-    if (entry.countdownEl) {
-      entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`;
-      if (entry.seconds <= 5) {
-        entry.countdownEl.classList.add('urgent');
-        if (entry.cardEl) entry.cardEl.classList.add('urgent-flash');
-      }
+    if (entry.timerEl) {
+      entry.timerEl.textContent = formatHoldTime(entry.seconds);
+      if (entry.seconds <= 30) entry.timerEl.classList.add('urgent');
     }
-    if (entry.seconds <= 0) { clearInterval(entry.intervalId); addLog(label, entry.color, 'auto-cleared'); dismissAlert(label); }
+    if (entry.seconds <= 0) {
+      clearInterval(entry.intervalId);
+      expireHold(holdTarget === null ? entry : holdTarget);
+    }
   }, 1000);
 
-  syncButtonStates();
-  updateFooter();
+  // Capture label before closing
+  const capturedLabel = holdTarget;
+  entry.intervalId = (() => {
+    clearInterval(entry.intervalId);
+    return setInterval(() => {
+      entry.seconds--;
+      if (entry.timerEl) {
+        entry.timerEl.textContent = formatHoldTime(entry.seconds);
+        if (entry.seconds <= 30) entry.timerEl.classList.add('urgent');
+      }
+      if (entry.overlayTimeEl) {
+        entry.overlayTimeEl.textContent = formatHoldTime(entry.seconds);
+        if (entry.seconds <= 30) entry.overlayTimeEl.classList.add('urgent');
+      }
+      if (entry.seconds <= 0) { clearInterval(entry.intervalId); expireHold(capturedLabel); }
+    }, 1000);
+  })();
+
+  closeHoldModal();
+  // Refresh overlay hold section if open
+  if (document.getElementById('overlay').classList.contains('show')) renderHoldOverlay();
+}
+
+function expireHold(label) {
+  const entry = holdTimers.get(label);
+  if (!entry) return;
+  clearInterval(entry.intervalId);
+  holdTimers.delete(label);
+  addLog(label, '#e8600a', 'hold expired');
+  const key = label.replace(/\s/g,'_');
+  const timerEl = document.getElementById(`holdTimer_${key}`);
+  const btnEl   = timerEl?.closest('.hold-btn');
+  if (btnEl) btnEl.classList.remove('holding');
+  if (timerEl) { timerEl.textContent = ''; timerEl.classList.remove('urgent'); }
+  // Refresh overlay hold section if open
+  if (document.getElementById('overlay').classList.contains('show')) renderHoldOverlay();
+}
+
+function formatHoldTime(s) {
+  if (s <= 0) return '0:00';
+  const m = Math.floor(s/60), sec = s % 60;
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+// ── Alerts ──
+function toggleAlert(label) {
+  if (activeAlerts.has(label)) { dismissAlert(label); return; }
+  const a = ALERTS.find(x => x.label === label);
+  const start = timerMode === '30' ? 30 : null;
+  const entry = { color:a.color, isDark:a.dark, seconds:start, totalSeconds:start, intervalId:null, countdownEl:null, cardEl:null };
+  activeAlerts.set(label, entry);
+  addLog(label, a.color, 'triggered');
+
+  if (start !== null) {
+    entry.intervalId = setInterval(() => {
+      entry.seconds--;
+      if (entry.countdownEl) {
+        entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`;
+        if (entry.seconds <= 5) { entry.countdownEl.classList.add('urgent'); if(entry.cardEl) entry.cardEl.classList.add('urgent-flash'); }
+      }
+      if (entry.seconds <= 0) { clearInterval(entry.intervalId); addLog(label, entry.color, 'auto-cleared'); dismissAlert(label); }
+    }, 1000);
+  }
+
+  syncButtonStates(); updateFooter();
   if (document.getElementById('overlay').classList.contains('show')) renderCards();
 }
 
 function repeatAlert(label) {
   const entry = activeAlerts.get(label);
-  if (!entry) return;
+  if (!entry || entry.totalSeconds === null) return;
   clearInterval(entry.intervalId);
   entry.seconds = entry.totalSeconds;
   if (entry.cardEl) entry.cardEl.classList.remove('urgent-flash');
-  if (entry.countdownEl) {
-    entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`;
-    entry.countdownEl.classList.remove('urgent');
-  }
+  if (entry.countdownEl) { entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`; entry.countdownEl.classList.remove('urgent'); }
   addLog(label, entry.color, 'reset');
-
   entry.intervalId = setInterval(() => {
     entry.seconds--;
     if (entry.countdownEl) {
       entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`;
-      if (entry.seconds <= 5) {
-        entry.countdownEl.classList.add('urgent');
-        if (entry.cardEl) entry.cardEl.classList.add('urgent-flash');
-      }
+      if (entry.seconds <= 5) { entry.countdownEl.classList.add('urgent'); if(entry.cardEl) entry.cardEl.classList.add('urgent-flash'); }
     }
     if (entry.seconds <= 0) { clearInterval(entry.intervalId); addLog(label, entry.color, 'auto-cleared'); dismissAlert(label); }
   }, 1000);
 }
 
-function addLog(label, color, action) {
-  const now = new Date();
-  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  alertLog.unshift({ label, color, action, time });
-  if (alertLog.length > 50) alertLog.pop();
-}
-
-function openLog() {
-  renderLog();
-  const panel = document.getElementById('logPanel');
-  panel.classList.remove('hide');
-  panel.classList.add('show');
-}
-
-function closeLog() {
-  const panel = document.getElementById('logPanel');
-  panel.classList.add('hide');
-  panel.addEventListener('animationend', () => panel.classList.remove('show', 'hide'), { once: true });
-}
-
-function clearLog() {
-  alertLog = [];
-  renderLog();
-}
-
-function renderLog() {
-  const list = document.getElementById('logList');
-  if (alertLog.length === 0) {
-    list.innerHTML = '<div class="log-empty">No alerts this session yet.</div>';
-    return;
-  }
-  list.innerHTML = '';
-  alertLog.forEach((entry, i) => {
-    const el = document.createElement('div');
-    el.className = 'log-entry';
-    el.style.animationDelay = (i * 0.03) + 's';
-    const actionLabel = entry.action === 'triggered' ? '🔔 Triggered' : entry.action === 'reset' ? '🔁 Reset' : entry.action === 'dismissed' ? '✓ Dismissed' : '⏱ Auto-cleared';
-    el.innerHTML = `
-      <div class="log-dot" style="background:${entry.color}"></div>
-      <div class="log-label">${entry.label}</div>
-      <div class="log-action">${actionLabel}</div>
-      <div class="log-time">${entry.time}</div>
-    `;
-    list.appendChild(el);
-  });
-}
-
 function syncButtonStates() {
-  document.querySelectorAll('.alert-btn, .add-btn').forEach(btn => {
-    btn.classList.toggle('active', activeAlerts.has(btn.dataset.label));
-  });
+  document.querySelectorAll('.alert-btn,.add-btn').forEach(btn => btn.classList.toggle('active', activeAlerts.has(btn.dataset.label)));
 }
 
 function updateFooter() {
   const viewBtn = document.getElementById('viewBtn');
   const clearBtn = document.getElementById('clearBtn');
   const count = activeAlerts.size;
-  if (count === 0) {
-    viewBtn.classList.remove('ready');
-    viewBtn.textContent = 'View Alerts';
-    clearBtn.classList.remove('visible');
-  } else {
-    viewBtn.classList.add('ready');
-    viewBtn.textContent = `View ${count} Alert${count > 1 ? 's' : ''} →`;
-    clearBtn.classList.add('visible');
-  }
+  if (count === 0) { viewBtn.classList.remove('ready'); viewBtn.textContent='View Alerts'; clearBtn.classList.remove('visible'); }
+  else { viewBtn.classList.add('ready'); viewBtn.textContent=`View ${count} Alert${count>1?'s':''} →`; clearBtn.classList.add('visible'); }
 }
 
 function renderCards() {
@@ -440,54 +611,46 @@ function renderCards() {
     card.className = 'alert-card';
     card.style.background = entry.color;
     card.style.color = entry.isDark ? 'black' : 'white';
-    card.style.animationDelay = delay + 's';
-    delay += 0.06;
-    if (entry.seconds <= 5) card.classList.add('urgent-flash');
+    card.style.animationDelay = delay+'s'; delay+=.06;
+    if (entry.seconds !== null && entry.seconds <= 5) card.classList.add('urgent-flash');
     entry.cardEl = card;
 
     const lbl = document.createElement('div');
-    lbl.className = 'alert-card-label';
-    lbl.textContent = label;
+    lbl.className = 'alert-card-label'; lbl.textContent = label;
 
     const cdEl = document.createElement('div');
-    cdEl.className = 'alert-card-countdown' + (entry.seconds <= 5 ? ' urgent' : '');
-    cdEl.textContent = `Clearing in ${entry.seconds}s`;
+    cdEl.className = 'alert-card-countdown' + (entry.seconds !== null && entry.seconds <= 5 ? ' urgent' : '');
+    cdEl.textContent = entry.seconds !== null ? `Clearing in ${entry.seconds}s` : 'Dismiss when ready';
     entry.countdownEl = cdEl;
 
     const actions = document.createElement('div');
     actions.className = 'card-actions';
 
-    const repeatBtn = document.createElement('button');
-    repeatBtn.className = 'alert-card-repeat';
-    repeatBtn.textContent = '🔁 Reset Timer';
-    if (entry.isDark) { repeatBtn.style.borderColor = 'rgba(0,0,0,0.3)'; repeatBtn.style.background = 'rgba(0,0,0,0.1)'; repeatBtn.style.color = 'black'; }
-    repeatBtn.onclick = () => repeatAlert(label);
+    if (entry.totalSeconds !== null) {
+      const repeatBtn = document.createElement('button');
+      repeatBtn.className = 'alert-card-repeat'; repeatBtn.textContent = '🔁 Reset';
+      if (entry.isDark) { repeatBtn.style.borderColor='rgba(0,0,0,0.3)'; repeatBtn.style.background='rgba(0,0,0,0.1)'; repeatBtn.style.color='black'; }
+      repeatBtn.onclick = () => repeatAlert(label);
+      actions.appendChild(repeatBtn);
+    }
 
     const dismissBtn = document.createElement('button');
-    dismissBtn.className = 'alert-card-dismiss';
-    dismissBtn.textContent = 'Dismiss';
-    if (entry.isDark) { dismissBtn.style.borderColor = 'rgba(0,0,0,0.3)'; dismissBtn.style.background = 'rgba(0,0,0,0.1)'; dismissBtn.style.color = 'black'; }
+    dismissBtn.className = 'alert-card-dismiss'; dismissBtn.textContent = 'Dismiss';
+    if (entry.isDark) { dismissBtn.style.borderColor='rgba(0,0,0,0.3)'; dismissBtn.style.background='rgba(0,0,0,0.1)'; dismissBtn.style.color='black'; }
     dismissBtn.onclick = () => animateDismiss(label, card);
-
-    actions.appendChild(repeatBtn);
     actions.appendChild(dismissBtn);
-    card.appendChild(lbl);
-    card.appendChild(cdEl);
-    card.appendChild(actions);
+
+    card.appendChild(lbl); card.appendChild(cdEl); card.appendChild(actions);
     container.appendChild(card);
   });
-
-  document.getElementById('overlayTitle').textContent =
-    activeAlerts.size === 1 ? 'Active Alert' : `${activeAlerts.size} Active Alerts`;
+  document.getElementById('overlayTitle').textContent = activeAlerts.size===1 ? 'Active Alert' : `${activeAlerts.size} Active Alerts`;
 }
 
 function animateDismiss(label, cardEl) {
   if (cardEl) {
     cardEl.classList.add('removing');
-    cardEl.addEventListener('animationend', () => { addLog(label, activeAlerts.get(label)?.color, 'dismissed'); dismissAlert(label); }, { once: true });
-  } else {
-    dismissAlert(label);
-  }
+    cardEl.addEventListener('animationend', () => { addLog(label, activeAlerts.get(label)?.color, 'dismissed'); dismissAlert(label); }, { once:true });
+  } else { dismissAlert(label); }
 }
 
 function dismissAlert(label) {
@@ -495,37 +658,109 @@ function dismissAlert(label) {
   if (!entry) return;
   clearInterval(entry.intervalId);
   activeAlerts.delete(label);
-  syncButtonStates();
-  updateFooter();
-  if (activeAlerts.size === 0) closeOverlay();
-  else renderCards();
+  syncButtonStates(); updateFooter();
+  if (activeAlerts.size === 0) closeOverlay(); else renderCards();
 }
 
 function showOverlay() {
   if (activeAlerts.size === 0) return;
   const overlay = document.getElementById('overlay');
-  overlay.classList.remove('hide');
-  overlay.classList.add('show');
+  overlay.classList.remove('hide'); overlay.classList.add('show');
   renderCards();
+  renderHoldOverlay();
+}
+
+function renderHoldOverlay() {
+  const section = document.getElementById('holdOverlaySection');
+  const grid = document.getElementById('holdOverlayGrid');
+  grid.innerHTML = '';
+  if (holdTimers.size === 0) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  let delay = 0;
+  holdTimers.forEach((entry, label) => {
+    const card = document.createElement('div');
+    card.className = 'hold-overlay-card';
+    card.style.animationDelay = (delay * 0.05) + 's'; delay++;
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'hold-overlay-name';
+    nameEl.textContent = label;
+
+    const timeEl = document.createElement('div');
+    timeEl.className = 'hold-overlay-time' + (entry.seconds <= 30 ? ' urgent' : '');
+    timeEl.textContent = formatHoldTime(entry.seconds);
+    // Keep this live ref so hold timer ticks update it
+    entry.overlayTimeEl = timeEl;
+
+    card.appendChild(nameEl);
+    card.appendChild(timeEl);
+    card.onclick = () => openHoldModal(label, HOLD_PRODUCTS.find(p=>p.label===label)?.mac || false);
+    grid.appendChild(card);
+  });
 }
 
 function closeOverlay() {
   const overlay = document.getElementById('overlay');
   overlay.classList.add('hide');
-  overlay.addEventListener('animationend', () => overlay.classList.remove('show', 'hide'), { once: true });
+  overlay.addEventListener('animationend', () => overlay.classList.remove('show','hide'), { once:true });
 }
 
 function clearAll() {
-  activeAlerts.forEach((entry, label) => { clearInterval(entry.intervalId); addLog(label, entry.color, 'dismissed'); });
-  activeAlerts.clear();
-  syncButtonStates();
-  closeOverlay();
-  updateFooter();
+  activeAlerts.forEach((entry,label) => { clearInterval(entry.intervalId); addLog(label,entry.color,'dismissed'); });
+  activeAlerts.clear(); syncButtonStates(); closeOverlay(); updateFooter();
 }
+
+// ── Log ──
+function addLog(label, color, action) {
+  const now = new Date();
+  const time = now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  alertLog.unshift({ label, color, action, time });
+  if (alertLog.length > 80) alertLog.pop();
+}
+
+function openLog() { renderLog(); const p=document.getElementById('logPanel'); p.classList.remove('hide'); p.classList.add('show'); }
+function closeLog() { const p=document.getElementById('logPanel'); p.classList.add('hide'); p.addEventListener('animationend',()=>p.classList.remove('show','hide'),{once:true}); }
+function clearLog() { alertLog=[]; renderLog(); }
+
+function renderLog() {
+  const list = document.getElementById('logList');
+  if (alertLog.length === 0) { list.innerHTML='<div class="log-empty">No activity this session yet.</div>'; return; }
+  list.innerHTML='';
+  alertLog.forEach((entry,i) => {
+    const el = document.createElement('div');
+    el.className='log-entry'; el.style.animationDelay=(i*.03)+'s';
+    const icons = { triggered:'🔔', reset:'🔁', dismissed:'✓', 'auto-cleared':'⏱', 'hold started':'🫳', 'hold expired':'⚠️' };
+    el.innerHTML=`<div class="log-dot" style="background:${entry.color}"></div><div class="log-label">${entry.label}</div><div class="log-action">${icons[entry.action]||''} ${entry.action}</div><div class="log-time">${entry.time}</div>`;
+    list.appendChild(el);
+  });
+}
+
+// ── Fullscreen ──
+function toggleFullscreen() {
+  const btn = document.getElementById('fullscreenBtn');
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().then(() => {
+      btn.textContent = '⛶ Exit Full';
+      btn.classList.add('active-mode');
+    }).catch(() => {});
+  } else {
+    document.exitFullscreen().then(() => {
+      btn.textContent = '⛶ Fullscreen';
+      btn.classList.remove('active-mode');
+    }).catch(() => {});
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  const btn = document.getElementById('fullscreenBtn');
+  if (!document.fullscreenElement) {
+    btn.textContent = '⛶ Fullscreen';
+    btn.classList.remove('active-mode');
+  }
+});
 
 buildMainGrid();
 buildAddGrid();
+buildHoldGrid();
 </script>
-
 </body>
 </html>
