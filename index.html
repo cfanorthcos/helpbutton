@@ -5,271 +5,165 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Kitchen Alert Board</title>
 <style>
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f6f8; height: 100vh; overflow: hidden; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f4f6f8; height:100vh; overflow:hidden; }
 
-@keyframes fadeDown    { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
-@keyframes fadeUp      { from { opacity:0; transform:translateY(10px);  } to { opacity:1; transform:translateY(0); } }
-@keyframes popIn       { from { opacity:0; transform:scale(0.88); } to { opacity:1; transform:scale(1); } }
-@keyframes slideOut    { from { opacity:1; transform:translateX(0) scale(1); } to { opacity:0; transform:translateX(-30px) scale(0.95); } }
-@keyframes ripple      { from { transform:scale(0.8); opacity:0.6; } to { transform:scale(2.2); opacity:0; } }
-@keyframes overlayIn   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-@keyframes overlayOut  { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(20px); } }
-@keyframes cardEntrance{ from { opacity:0; transform:scale(0.9) translateY(16px); } to { opacity:1; transform:scale(1) translateY(0); } }
-@keyframes checkPop    { 0%{transform:scale(0);opacity:0;} 60%{transform:scale(1.3);opacity:1;} 100%{transform:scale(1);opacity:1;} }
-@keyframes cardPulse   { 0%,100%{filter:brightness(1);} 50%{filter:brightness(1.25);} }
-@keyframes logSlideIn  { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
-@keyframes panelIn     { from { opacity:0; transform:translateY(100%); } to { opacity:1; transform:translateY(0); } }
-@keyframes panelOut    { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(100%); } }
-@keyframes holdSlideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-@keyframes holdPulse   { 0%,100%{box-shadow:0 4px 16px rgba(0,0,0,0.15);} 50%{box-shadow:0 4px 24px rgba(220,53,53,0.5);} }
+@keyframes fadeDown    { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeUp      { from{opacity:0;transform:translateY(10px)}  to{opacity:1;transform:translateY(0)} }
+@keyframes popIn       { from{opacity:0;transform:scale(0.88)} to{opacity:1;transform:scale(1)} }
+@keyframes slideOut    { from{opacity:1;transform:translateX(0) scale(1)} to{opacity:0;transform:translateX(-30px) scale(0.95)} }
+@keyframes ripple      { from{transform:scale(0.8);opacity:0.6} to{transform:scale(2.2);opacity:0} }
+@keyframes cardEntrance{ from{opacity:0;transform:scale(0.92) translateY(14px)} to{opacity:1;transform:scale(1) translateY(0)} }
+@keyframes checkPop    { 0%{transform:scale(0);opacity:0} 60%{transform:scale(1.3);opacity:1} 100%{transform:scale(1);opacity:1} }
+@keyframes cardPulse   { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.28)} }
+@keyframes holdPulse   { 0%,100%{box-shadow:0 4px 12px rgba(0,0,0,0.1)} 50%{box-shadow:0 4px 20px rgba(220,53,53,0.4)} }
+@keyframes logSlideIn  { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+@keyframes panelIn     { from{opacity:0;transform:translateY(100%)} to{opacity:1;transform:translateY(0)} }
+@keyframes panelOut    { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(100%)} }
+@keyframes emptyFadeIn { from{opacity:0} to{opacity:1} }
 
-/* ── Main layout ── */
-.container { display:flex; flex-direction:column; height:100%; padding:14px; gap:10px; }
-.top-bar { display:flex; align-items:center; justify-content:flex-end; animation:fadeDown .4s ease both; }
-.top-actions { display:flex; gap:8px; align-items:center; }
+/* ── Layout ── */
+.container { display:flex; flex-direction:column; height:100%; padding:12px; gap:10px; }
+
+/* ── Top bar ── */
+.top-bar { display:flex; align-items:center; justify-content:space-between; flex-shrink:0; animation:fadeDown .4s ease both; }
+.top-left,.top-right { display:flex; gap:8px; align-items:center; }
 .icon-btn {
-  background:white; border:1px solid #ddd; border-radius:12px;
+  background:white; border:1.5px solid #ddd; border-radius:12px;
   padding:7px 13px; font-size:0.82rem; font-weight:700; color:#555;
-  cursor:pointer; transition:background .2s,transform .15s; display:flex; align-items:center; gap:5px;
+  cursor:pointer; transition:background .2s,transform .15s; white-space:nowrap;
 }
 .icon-btn:hover { background:#eee; }
 .icon-btn:active { transform:scale(.96); }
 .icon-btn.active-mode { background:#1a1a2e; color:white; border-color:#1a1a2e; }
+.clear-all-btn {
+  background:#fff0f0; border:1.5px solid #ffcccc; border-radius:12px;
+  padding:7px 13px; font-size:0.82rem; font-weight:700; color:#c00;
+  cursor:pointer; transition:background .2s,transform .15s; white-space:nowrap; display:none;
+}
+.clear-all-btn.visible { display:block; animation:fadeDown .3s ease both; }
+.clear-all-btn:active { transform:scale(.96); }
 
 /* ── Timer toggle ── */
-.timer-toggle { display:flex; gap:0; background:white; border:1px solid #e0e0e0; border-radius:14px; overflow:hidden; animation:fadeDown .4s ease .05s both; flex-shrink:0; }
-.timer-opt {
-  flex:1; padding:10px 0; font-size:0.88rem; font-weight:700; color:#888;
-  background:none; border:none; cursor:pointer; transition:background .2s,color .2s;
-  text-align:center;
-}
+.timer-toggle { display:flex; background:white; border:1.5px solid #e0e0e0; border-radius:14px; overflow:hidden; flex-shrink:0; animation:fadeDown .4s ease .05s both; }
+.timer-opt { flex:1; padding:9px 0; font-size:0.88rem; font-weight:700; color:#888; background:none; border:none; cursor:pointer; transition:background .2s,color .2s; text-align:center; }
 .timer-opt.active { background:#1a1a2e; color:white; }
 
-/* ── Alert buttons ── */
-.button-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; flex:1; min-height:0; }
-.alert-btn {
-  border:none; border-radius:20px; color:white; font-size:1.25rem; font-weight:700;
-  padding:20px; min-height:90px; cursor:pointer;
-  box-shadow:0 4px 6px rgba(0,0,0,0.12); position:relative; overflow:hidden;
-  transition:transform .18s cubic-bezier(.34,1.56,.64,1),filter .18s,box-shadow .18s;
-  animation:popIn 0.35s cubic-bezier(.34,1.56,.64,1) both;
-}
-.alert-btn:nth-child(1){animation-delay:.05s} .alert-btn:nth-child(2){animation-delay:.10s}
-.alert-btn:nth-child(3){animation-delay:.15s} .alert-btn:nth-child(4){animation-delay:.20s}
-.alert-btn:nth-child(5){animation-delay:.25s} .alert-btn:nth-child(6){animation-delay:.30s}
-.alert-btn:nth-child(7){animation-delay:.35s} .alert-btn:nth-child(8){animation-delay:.40s}
-.alert-btn:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,0,0,0.18); }
-.alert-btn:active { transform:scale(.95) translateY(0); }
-.alert-btn.active { outline:5px solid white; outline-offset:-5px; filter:brightness(1.15); }
-.alert-btn .check { position:absolute; top:8px; right:12px; font-size:1.1rem; opacity:0; transition:opacity .15s; }
-.alert-btn.active .check { opacity:.9; animation:checkPop .3s cubic-bezier(.34,1.56,.64,1) both; }
-.ripple-circle { position:absolute; border-radius:50%; background:rgba(255,255,255,0.35); width:60px; height:60px; pointer-events:none; animation:ripple .55s ease-out forwards; }
+/* ── Alert cards area (fills remaining space) ── */
+.cards-area { flex:1; min-height:0; display:flex; flex-direction:column; gap:10px; position:relative; }
 
-/* ── Footer ── */
-.footer { display:flex; gap:10px; align-items:center; animation:fadeUp .4s ease .45s both; flex-shrink:0; }
-.view-btn {
-  flex:1; padding:14px; border-radius:14px; border:none;
-  background:#333; color:white; font-size:1.1rem; font-weight:700;
-  cursor:pointer; opacity:.4; pointer-events:none;
-  transition:opacity .25s,background .25s,transform .15s;
+/* Empty state */
+.empty-state {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:10px; border:2px dashed #ddd; border-radius:22px;
+  animation:emptyFadeIn .4s ease both;
 }
-.view-btn.ready { opacity:1; pointer-events:auto; background:#1a1a2e; }
-.view-btn.ready:hover { background:#2a2a4e; transform:translateY(-1px); }
-.view-btn.ready:active { transform:scale(.97); }
-.clear-btn {
-  padding:14px 18px; border-radius:14px; border:none;
-  background:#ccc; color:#333; font-size:0.95rem; font-weight:700;
-  cursor:pointer; display:none; transition:transform .15s,background .2s;
-}
-.clear-btn.visible { display:block; animation:fadeUp .3s ease both; }
-.clear-btn:hover { background:#bbb; }
-.clear-btn:active { transform:scale(.97); }
+.empty-state-icon { font-size:2.4rem; opacity:.35; }
+.empty-state-text { font-size:1rem; font-weight:600; color:#bbb; }
+.empty-state-sub { font-size:0.82rem; color:#ccc; font-weight:500; }
 
-/* ── HOLD SECTION ── */
-.hold-section { flex-shrink:0; animation:fadeUp .4s ease .3s both; }
-.hold-section-title {
-  font-size:0.78rem; font-weight:700; color:#999; text-transform:uppercase;
-  letter-spacing:.06em; padding:0 4px 6px;
-}
-.hold-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; }
+/* Alert cards row — side by side like original overlay */
+.alert-cards-row { display:flex; flex-direction:row; gap:10px; flex:1; min-height:0; }
 
-.hold-btn {
-  border:none; border-radius:16px; background:white; border:1.5px solid #e0e0e0;
-  padding:10px 10px; cursor:pointer; font-size:0.85rem; font-weight:700; color:#444;
-  transition:transform .15s,box-shadow .15s,border-color .15s;
-  display:flex; flex-direction:column; align-items:center; gap:4px; position:relative;
-  animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
-}
-.hold-btn:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
-.hold-btn:active { transform:scale(.96); }
-.hold-btn.holding {
-  background:#fff8f0; border-color:#e8600a; color:#c85000;
-  box-shadow:0 4px 16px rgba(232,96,10,0.2);
-  animation:holdPulse 2s ease-in-out infinite;
-}
-.hold-btn-name { font-size:0.82rem; font-weight:700; }
-.hold-btn-timer { font-size:1rem; font-weight:900; color:#e8600a; min-height:1.2em; }
-.hold-btn-timer.urgent { color:#d32f2f; animation:cardPulse .6s ease-in-out infinite; }
-
-.overlay-back-btn {
-  background:#f0f0f0; border:none; color:#333;
-  font-size:0.9rem; font-weight:700; padding:7px 14px; border-radius:18px; cursor:pointer;
-  transition:background .2s, transform .15s; white-space:nowrap;
-}
-.overlay-back-btn:hover { background:#e0e0e0; }
-.overlay-back-btn:active { transform:scale(.96); }
-.overlay-add-hold-btn {
-  background:#1a1a2e; border:none; color:white;
-  font-size:0.78rem; font-weight:700; padding:5px 12px; border-radius:14px; cursor:pointer;
-  transition:background .2s, transform .15s;
-}
-.overlay-add-hold-btn:hover { background:#2a2a4e; }
-.overlay-add-hold-btn:active { transform:scale(.96); }
-
-/* Hold picker from overlay */
-.hold-picker-backdrop {
-  position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:20000;
-  display:none; align-items:flex-end; justify-content:center;
-}
-.hold-picker-backdrop.show { display:flex; }
-.hold-picker-sheet {
-  background:white; border-radius:24px 24px 0 0; padding:20px; width:100%; max-width:600px;
-  box-shadow:0 -8px 30px rgba(0,0,0,0.2); animation:panelIn .3s cubic-bezier(.4,0,.2,1) both;
-}
-.hold-picker-title { font-size:1rem; font-weight:700; color:#333; margin-bottom:14px; }
-.hold-picker-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; }
-.hold-picker-item {
-  border:1.5px solid #e0e0e0; border-radius:14px; background:#f8f8f8;
-  padding:12px 8px; font-size:0.88rem; font-weight:700; color:#444;
-  cursor:pointer; text-align:center; transition:background .15s, transform .15s;
-}
-.hold-picker-item:hover { background:#eee; }
-.hold-picker-item:active { transform:scale(.96); }
-.hold-picker-item.already-holding { background:#fff8f0; border-color:#e8600a; color:#c85000; }
-.hold-picker-cancel {
-  width:100%; margin-top:12px; padding:12px; border-radius:14px; border:none;
-  background:#f0f0f0; color:#555; font-size:0.95rem; font-weight:700;
-  cursor:pointer; transition:background .2s;
-}
-.hold-picker-cancel:hover { background:#e0e0e0; }
-.hold-overlay-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:8px; }
-.hold-overlay-card {
-  border-radius:14px; padding:10px 12px; text-align:center;
-  background:#fff8f0; border:1.5px solid #e8600a;
-  animation:cardEntrance .3s cubic-bezier(.34,1.56,.64,1) both;
-  cursor:pointer; transition:transform .15s, box-shadow .15s;
-}
-.hold-overlay-card:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(232,96,10,0.2); }
-.hold-overlay-card:active { transform:scale(.96); }
-.hold-overlay-name { font-size:0.78rem; font-weight:700; color:#c85000; }
-.hold-overlay-time { font-size:1.1rem; font-weight:900; color:#e8600a; }
-.hold-overlay-time.urgent { color:#d32f2f; animation:cardPulse .6s ease-in-out infinite; }
-.hold-modal-backdrop {
-  position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:20000;
-  display:none; align-items:center; justify-content:center;
-}
-.hold-modal-backdrop.show { display:flex; }
-.hold-modal {
-  background:white; border-radius:24px; padding:24px; width:88%; max-width:380px;
-  box-shadow:0 12px 40px rgba(0,0,0,0.25); animation:cardEntrance .3s cubic-bezier(.34,1.56,.64,1) both;
-}
-.hold-modal-title { font-size:1.2rem; font-weight:700; color:#333; margin-bottom:16px; }
-.hold-quick-btns { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:16px; }
-.hold-quick-btn {
-  border:none; border-radius:12px; background:#f4f6f8; color:#333;
-  font-size:0.9rem; font-weight:700; padding:12px 4px; cursor:pointer;
-  transition:background .15s,transform .15s;
-}
-.hold-quick-btn:hover { background:#e8eaed; }
-.hold-quick-btn:active { transform:scale(.95); }
-.hold-quick-btn.selected { background:#1a1a2e; color:white; }
-.hold-mac-row { display:flex; gap:8px; align-items:center; margin-bottom:16px; }
-.hold-mac-row label { font-size:0.85rem; font-weight:700; color:#777; white-space:nowrap; }
-.hold-mac-input {
-  flex:1; border:1.5px solid #e0e0e0; border-radius:10px; padding:10px 12px;
-  font-size:1rem; font-weight:700; color:#333; outline:none;
-  transition:border-color .2s;
-}
-.hold-mac-input:focus { border-color:#1a1a2e; }
-.hold-modal-actions { display:flex; gap:8px; }
-.hold-modal-start {
-  flex:1; padding:13px; border-radius:14px; border:none;
-  background:#1a1a2e; color:white; font-size:1rem; font-weight:700;
-  cursor:pointer; transition:background .2s,transform .15s;
-}
-.hold-modal-start:hover { background:#2a2a4e; }
-.hold-modal-start:active { transform:scale(.97); }
-.hold-modal-cancel {
-  padding:13px 18px; border-radius:14px; border:none;
-  background:#f0f0f0; color:#555; font-size:1rem; font-weight:700;
-  cursor:pointer; transition:background .2s,transform .15s;
-}
-.hold-modal-cancel:hover { background:#e0e0e0; }
-.hold-modal-cancel:active { transform:scale(.97); }
-
-/* ── Alert overlay ── */
-.overlay { position:fixed; inset:0; flex-direction:column; z-index:9999; background:#f4f6f8; display:none; }
-.overlay.show { display:flex; animation:overlayIn .3s cubic-bezier(.4,0,.2,1) both; }
-.overlay.hide { animation:overlayOut .25s ease both; }
-.overlay-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 18px; background:white; border-bottom:1px solid #e0e0e0; flex-shrink:0;
-  animation:fadeDown .3s ease .1s both;
-}
-.overlay-title { color:#333; font-size:1.1rem; font-weight:700; }
-.overlay-actions { display:flex; gap:8px; }
-.overlay-clear-all {
-  background:#f0f0f0; border:none; color:#333;
-  font-size:0.85rem; font-weight:700; padding:7px 14px; border-radius:18px; cursor:pointer;
-  transition:background .2s,transform .15s;
-}
-.overlay-clear-all:hover { background:#e0e0e0; }
-.overlay-clear-all:active { transform:scale(.96); }
-.overlay-log-btn {
-  background:#1a1a2e; border:none; color:white;
-  font-size:0.85rem; font-weight:700; padding:7px 13px; border-radius:18px; cursor:pointer;
-  transition:background .2s,transform .15s;
-}
-.overlay-log-btn:hover { background:#2a2a4e; }
-.overlay-log-btn:active { transform:scale(.96); }
-
-.alert-cards { display:flex; flex-direction:row; padding:12px; gap:10px; flex:1; min-height:0; }
 .alert-card {
   flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  text-align:center; padding:22px 14px; border-radius:22px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.18);
+  text-align:center; padding:20px 14px; border-radius:22px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.16);
   animation:cardEntrance .35s cubic-bezier(.34,1.56,.64,1) both;
-  transition:flex .3s ease,box-shadow .2s;
+  transition:box-shadow .2s;
 }
-.alert-card:hover { box-shadow:0 8px 24px rgba(0,0,0,0.22); }
+.alert-card:hover { box-shadow:0 8px 22px rgba(0,0,0,0.22); }
 .alert-card.urgent-flash { animation:cardPulse .6s ease-in-out infinite; }
-.alert-card.removing { animation:slideOut .25s ease both; }
-.alert-card-label { font-size:clamp(1.1rem,3.5vw,4rem); font-weight:900; line-height:1.1; margin-bottom:10px; }
-.alert-card-countdown { font-size:clamp(0.9rem,2.2vw,1.7rem); font-weight:700; opacity:.75; margin-bottom:16px; }
+.alert-card.removing { animation:slideOut .22s ease both; }
+.alert-card-label { font-size:clamp(1.1rem,3.5vw,3.5rem); font-weight:900; line-height:1.1; margin-bottom:10px; }
+.alert-card-countdown { font-size:clamp(0.85rem,2vw,1.6rem); font-weight:700; opacity:.75; margin-bottom:14px; }
 .alert-card-countdown.urgent { opacity:1; }
 .card-actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
 .alert-card-dismiss,.alert-card-repeat {
   border:2px solid rgba(255,255,255,0.5); background:rgba(255,255,255,0.15); color:white;
-  font-size:0.82rem; font-weight:700; padding:7px 14px; border-radius:22px; cursor:pointer;
+  font-size:0.8rem; font-weight:700; padding:6px 14px; border-radius:20px; cursor:pointer;
   transition:background .2s,transform .15s;
 }
 .alert-card-dismiss:hover,.alert-card-repeat:hover { background:rgba(255,255,255,0.28); }
 .alert-card-dismiss:active,.alert-card-repeat:active { transform:scale(.96); }
 
-.add-row { flex-shrink:0; padding:0 12px 12px; display:flex; flex-direction:column; gap:6px; animation:fadeUp .3s ease .15s both; }
-.add-row-label { font-size:0.78rem; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.05em; padding-left:4px; }
-.add-btn-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:7px; }
-.add-btn {
-  border:none; border-radius:13px; color:white; font-size:0.82rem; font-weight:700; padding:12px 8px;
-  cursor:pointer; position:relative; opacity:.85; overflow:hidden;
-  transition:transform .18s cubic-bezier(.34,1.56,.64,1),filter .15s,opacity .15s,box-shadow .15s;
+/* ── Alert buttons (bottom row) ── */
+.button-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:10px; flex-shrink:0; animation:fadeUp .4s ease .2s both;
 }
-.add-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.2); opacity:1; }
-.add-btn:active { transform:scale(.95); }
-.add-btn.active { outline:4px solid white; outline-offset:-4px; filter:brightness(1.15); opacity:1; }
-.add-btn .check { position:absolute; top:4px; right:7px; font-size:0.82rem; opacity:0; transition:opacity .15s; }
-.add-btn.active .check { opacity:1; animation:checkPop .3s cubic-bezier(.34,1.56,.64,1) both; }
+.alert-btn {
+  border:none; border-radius:18px; color:white; font-size:1rem; font-weight:700;
+  padding:16px 12px; min-height:70px; cursor:pointer;
+  box-shadow:0 4px 6px rgba(0,0,0,0.12); position:relative; overflow:hidden;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1),filter .18s,box-shadow .18s;
+  animation:popIn .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+.alert-btn:nth-child(1){animation-delay:.04s} .alert-btn:nth-child(2){animation-delay:.08s}
+.alert-btn:nth-child(3){animation-delay:.12s} .alert-btn:nth-child(4){animation-delay:.16s}
+.alert-btn:nth-child(5){animation-delay:.20s} .alert-btn:nth-child(6){animation-delay:.24s}
+.alert-btn:nth-child(7){animation-delay:.28s} .alert-btn:nth-child(8){animation-delay:.32s}
+.alert-btn:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,0,0,0.18); }
+.alert-btn:active { transform:scale(.95); }
+.alert-btn.active { outline:5px solid white; outline-offset:-5px; filter:brightness(1.15); }
+.alert-btn .check { position:absolute; top:7px; right:9px; font-size:0.95rem; opacity:0; transition:opacity .15s; }
+.alert-btn.active .check { opacity:.9; animation:checkPop .3s cubic-bezier(.34,1.56,.64,1) both; }
+.ripple-circle { position:absolute; border-radius:50%; background:rgba(255,255,255,0.35); width:60px; height:60px; pointer-events:none; animation:ripple .55s ease-out forwards; }
+
+/* ── Hold section ── */
+.hold-section { flex-shrink:0; animation:fadeUp .4s ease .3s both; }
+.hold-section-header { display:flex; align-items:center; justify-content:space-between; padding:0 4px 7px; }
+.hold-section-title { font-size:0.76rem; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.06em; }
+.hold-add-btn {
+  background:#1a1a2e; border:none; color:white;
+  font-size:0.74rem; font-weight:700; padding:4px 11px; border-radius:11px; cursor:pointer;
+  transition:background .2s,transform .15s;
+}
+.hold-add-btn:hover { background:#2a2a4e; }
+.hold-add-btn:active { transform:scale(.96); }
+.hold-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:8px; }
+.hold-btn {
+  border:1.5px solid #e0e0e0; border-radius:13px; background:white;
+  padding:8px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px;
+  transition:transform .15s,box-shadow .15s; position:relative;
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.hold-btn:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+.hold-btn:active { transform:scale(.96); }
+.hold-btn.holding { background:#fff8f0; border-color:#e8600a; animation:holdPulse 2s ease-in-out infinite; }
+.hold-btn-name { font-size:0.76rem; font-weight:700; color:#444; }
+.hold-btn.holding .hold-btn-name { color:#c85000; }
+.hold-btn-timer { font-size:0.9rem; font-weight:900; color:#e8600a; min-height:1em; }
+.hold-btn-timer.urgent { color:#d32f2f; animation:cardPulse .6s ease-in-out infinite; }
+
+/* ── Modals ── */
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:20000; display:none; align-items:flex-end; justify-content:center; }
+.modal-backdrop.show { display:flex; }
+.modal-sheet { background:white; border-radius:24px 24px 0 0; padding:22px; width:100%; max-width:560px; box-shadow:0 -8px 30px rgba(0,0,0,0.2); animation:panelIn .3s cubic-bezier(.4,0,.2,1) both; }
+.modal-title { font-size:1.05rem; font-weight:700; color:#333; margin-bottom:14px; }
+.hold-quick-btns { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
+.hold-quick-btn { border:none; border-radius:12px; background:#f4f6f8; color:#333; font-size:0.9rem; font-weight:700; padding:12px 4px; cursor:pointer; transition:background .15s,transform .15s; }
+.hold-quick-btn:hover { background:#e8eaed; }
+.hold-quick-btn:active { transform:scale(.95); }
+.hold-quick-btn.selected { background:#1a1a2e; color:white; }
+.hold-mac-row { display:flex; gap:8px; align-items:center; margin-bottom:14px; }
+.hold-mac-row label { font-size:0.85rem; font-weight:700; color:#777; white-space:nowrap; }
+.hold-mac-input { flex:1; border:1.5px solid #e0e0e0; border-radius:10px; padding:10px 12px; font-size:1rem; font-weight:700; color:#333; outline:none; transition:border-color .2s; }
+.hold-mac-input:focus { border-color:#1a1a2e; }
+.modal-actions { display:flex; gap:8px; }
+.modal-btn-primary { flex:1; padding:13px; border-radius:14px; border:none; background:#1a1a2e; color:white; font-size:1rem; font-weight:700; cursor:pointer; transition:background .2s,transform .15s; }
+.modal-btn-primary:hover { background:#2a2a4e; }
+.modal-btn-primary:active { transform:scale(.97); }
+.modal-btn-cancel { padding:13px 18px; border-radius:14px; border:none; background:#f0f0f0; color:#555; font-size:1rem; font-weight:700; cursor:pointer; transition:background .2s; }
+.modal-btn-cancel:hover { background:#e0e0e0; }
+.modal-btn-danger { padding:13px 18px; border-radius:14px; border:none; background:#fff0f0; color:#c00; font-size:1rem; font-weight:700; cursor:pointer; transition:background .2s,transform .15s; }
+.modal-btn-danger:hover { background:#ffe0e0; }
+.modal-btn-danger:active { transform:scale(.97); }
+.hold-picker-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:8px; margin-bottom:14px; }
+.hold-picker-item { border:1.5px solid #e0e0e0; border-radius:13px; background:#f8f8f8; padding:12px 8px; font-size:0.88rem; font-weight:700; color:#444; cursor:pointer; text-align:center; transition:background .15s,transform .15s; }
+.hold-picker-item:hover { background:#eee; }
+.hold-picker-item:active { transform:scale(.96); }
+.hold-picker-item.already-holding { background:#fff8f0; border-color:#e8600a; color:#c85000; }
 
 /* ── Log panel ── */
 .log-panel { position:fixed; inset:0; z-index:10000; display:none; flex-direction:column; background:white; }
@@ -293,10 +187,14 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 <body>
 
 <div class="container">
+
   <!-- Top bar -->
   <div class="top-bar">
-    <div class="top-actions">
-      <button class="icon-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Fullscreen">⛶ Fullscreen</button>
+    <div class="top-left">
+      <button class="icon-btn" id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+    </div>
+    <div class="top-right">
+      <button class="clear-all-btn" id="clearAllBtn" onclick="clearAll()">Clear All</button>
       <button class="icon-btn" onclick="openLog()">📋 Log</button>
     </div>
   </div>
@@ -307,72 +205,56 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
     <button class="timer-opt" id="timerOptUnlim" onclick="setTimerMode('unlimited')">∞ Dismiss Only</button>
   </div>
 
-  <!-- Alert buttons -->
+  <!-- Cards area: empty state or active cards -->
+  <div class="cards-area" id="cardsArea">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-state-icon">🍽️</div>
+      <div class="empty-state-text">No Active Alerts</div>
+      <div class="empty-state-sub">Tap a button below to send an alert</div>
+    </div>
+    <div class="alert-cards-row" id="alertCardsRow" style="display:none"></div>
+  </div>
+
+  <!-- Alert buttons — always at bottom -->
   <div class="button-grid" id="mainGrid"></div>
 
   <!-- Hold section -->
   <div class="hold-section">
-    <div class="hold-section-title">🫳 Holding</div>
+    <div class="hold-section-header">
+      <div class="hold-section-title">🫳 Holding</div>
+    </div>
     <div class="hold-grid" id="holdGrid"></div>
   </div>
 
-  <!-- Footer -->
-  <div class="footer">
-    <button class="clear-btn" id="clearBtn" onclick="clearAll()">Clear All</button>
-    <button class="view-btn" id="viewBtn" onclick="showOverlay()">View Alerts</button>
-  </div>
 </div>
 
-<!-- Alert overlay -->
-<div id="overlay" class="overlay">
-  <div class="overlay-header">
-    <button class="overlay-back-btn" onclick="closeOverlay()">← Back</button>
-    <div class="overlay-title" id="overlayTitle">Active Alerts</div>
-    <div class="overlay-actions">
-      <button class="overlay-log-btn" onclick="openLog()">📋 Log</button>
-      <button class="overlay-clear-all" onclick="clearAll()">Clear All</button>
-    </div>
-  </div>
-  <div class="alert-cards" id="alertCards"></div>
-  <div class="hold-overlay-section" id="holdOverlaySection" style="display:none; flex-shrink:0; padding:0 12px 10px;">
-    <div style="display:flex; align-items:center; justify-content:space-between; padding:0 4px 6px;">
-      <div class="add-row-label" style="padding:0;">🫳 Holding</div>
-      <button class="overlay-add-hold-btn" onclick="openHoldPickerFromOverlay()">+ Add Hold</button>
-    </div>
-    <div class="hold-overlay-grid" id="holdOverlayGrid"></div>
-  </div>
-  <div class="add-row">
-    <div class="add-row-label">Add Alert</div>
-    <div class="add-btn-grid" id="addBtnGrid"></div>
-  </div>
-</div>
-
-<!-- Hold modal -->
-<div class="hold-modal-backdrop" id="holdModalBackdrop">
-  <div class="hold-modal" id="holdModal">
-    <div class="hold-modal-title" id="holdModalTitle">Set Hold Timer</div>
+<!-- Hold time modal -->
+<div class="modal-backdrop" id="holdTimeModal">
+  <div class="modal-sheet">
+    <div class="modal-title" id="holdTimeModalTitle">Set Hold Timer</div>
     <div id="holdQuickSection">
       <div class="hold-quick-btns" id="holdQuickBtns"></div>
     </div>
-    <div id="holdMacSection" style="display:none;">
+    <div id="holdMacSection" style="display:none">
       <div class="hold-mac-row">
         <label>Minutes</label>
         <input class="hold-mac-input" type="number" id="holdMacInput" min="1" max="60" placeholder="e.g. 8">
       </div>
     </div>
-    <div class="hold-modal-actions">
-      <button class="hold-modal-cancel" onclick="closeHoldModal()">Cancel</button>
-      <button class="hold-modal-start" onclick="startHold()">Start Timer</button>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeHoldTimeModal()">Cancel</button>
+      <button class="modal-btn-danger" id="cancelHoldBtn" onclick="cancelHoldFromModal()" style="display:none">🗑 Cancel Hold</button>
+      <button class="modal-btn-primary" onclick="startHold()">Start Timer</button>
     </div>
   </div>
 </div>
 
-<!-- Hold picker from overlay -->
-<div class="hold-picker-backdrop" id="holdPickerBackdrop">
-  <div class="hold-picker-sheet">
-    <div class="hold-picker-title">Select product to hold</div>
+<!-- Hold product picker -->
+<div class="modal-backdrop" id="holdPickerModal">
+  <div class="modal-sheet">
+    <div class="modal-title">Select product to hold</div>
     <div class="hold-picker-grid" id="holdPickerGrid"></div>
-    <button class="hold-picker-cancel" onclick="closeHoldPicker()">Cancel</button>
+    <button class="modal-btn-cancel" style="width:100%" onclick="closeHoldPicker()">Cancel</button>
   </div>
 </div>
 
@@ -380,7 +262,7 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sa
 <div id="logPanel" class="log-panel">
   <div class="log-header">
     <div class="log-header-title">Alert History</div>
-    <div style="display:flex;gap:8px;align-items:center;">
+    <div style="display:flex;gap:8px;align-items:center">
       <button class="log-clear-btn" onclick="clearLog()">Clear log</button>
       <button class="log-close-btn" onclick="closeLog()">Done</button>
     </div>
@@ -401,444 +283,291 @@ const ALERTS = [
 ];
 
 const HOLD_PRODUCTS = [
-  { label:'Filet',          mac:false },
-  { label:'Spicy',          mac:false },
-  { label:'Nuggets',        mac:false },
-  { label:'Strips',         mac:false },
-  { label:'Grilled Nuggets',mac:false },
-  { label:'Grilled Filet',  mac:false },
-  { label:'Mac & Cheese',   mac:true  },
+  { label:'Filet',           mac:false },
+  { label:'Spicy',           mac:false },
+  { label:'Nuggets',         mac:false },
+  { label:'Strips',          mac:false },
+  { label:'Grilled Nuggets', mac:false },
+  { label:'Grilled Filet',   mac:false },
+  { label:'Mac & Cheese',    mac:true  },
 ];
 
-// Quick times in seconds: 1m–5m
 const QUICK_TIMES = [60,120,180,240,300];
-
 const activeAlerts = new Map();
-const holdTimers   = new Map(); // label -> { seconds, totalSeconds, intervalId, timerEl, btnEl }
-let alertLog   = [];
-let timerMode  = '30';
-let holdTarget = null; // product label currently being set
-let selectedQuick = null;
+const holdTimers   = new Map();
+let alertLog=[], timerMode='30', holdTarget=null, selectedQuick=null;
 
-// ── Timer toggle ──
-function setTimerMode(mode) {
-  timerMode = mode;
-  document.getElementById('timerOpt30').classList.toggle('active', mode === '30');
-  document.getElementById('timerOptUnlim').classList.toggle('active', mode === 'unlimited');
+function setTimerMode(m){
+  timerMode=m;
+  document.getElementById('timerOpt30').classList.toggle('active',m==='30');
+  document.getElementById('timerOptUnlim').classList.toggle('active',m==='unlimited');
 }
 
-// ── Ripple ──
-function spawnRipple(btn, e) {
-  const rect = btn.getBoundingClientRect();
-  const x = (e.clientX || rect.left + rect.width/2) - rect.left;
-  const y = (e.clientY || rect.top  + rect.height/2) - rect.top;
-  const c = document.createElement('span');
-  c.className = 'ripple-circle';
-  c.style.left = (x-30)+'px'; c.style.top = (y-30)+'px';
-  btn.appendChild(c);
-  c.addEventListener('animationend', () => c.remove());
+function spawnRipple(btn,e){
+  const r=btn.getBoundingClientRect();
+  const x=(e.clientX||r.left+r.width/2)-r.left, y=(e.clientY||r.top+r.height/2)-r.top;
+  const c=document.createElement('span'); c.className='ripple-circle';
+  c.style.left=(x-30)+'px'; c.style.top=(y-30)+'px';
+  btn.appendChild(c); c.addEventListener('animationend',()=>c.remove());
 }
 
-// ── Build grids ──
-function buildMainGrid() {
-  const grid = document.getElementById('mainGrid');
-  ALERTS.forEach(a => {
-    const btn = document.createElement('button');
-    btn.className = 'alert-btn';
-    btn.style.background = a.color;
-    btn.style.color = a.dark ? 'black' : 'white';
-    btn.dataset.label = a.label;
-    btn.innerHTML = `${a.label}<span class="check">✓</span>`;
-    btn.addEventListener('click', e => { spawnRipple(btn,e); toggleAlert(a.label); });
-    grid.appendChild(btn);
+function buildMainGrid(){
+  const g=document.getElementById('mainGrid');
+  ALERTS.forEach(a=>{
+    const b=document.createElement('button');
+    b.className='alert-btn'; b.style.background=a.color; b.style.color=a.dark?'black':'white';
+    b.dataset.label=a.label;
+    b.innerHTML=`${a.label}<span class="check">✓</span>`;
+    b.addEventListener('click',e=>{spawnRipple(b,e);toggleAlert(a.label);});
+    g.appendChild(b);
   });
 }
 
-function buildAddGrid() {
-  const grid = document.getElementById('addBtnGrid');
-  ALERTS.forEach(a => {
-    const btn = document.createElement('button');
-    btn.className = 'add-btn';
-    btn.style.background = a.color;
-    btn.style.color = a.dark ? 'black' : 'white';
-    btn.dataset.label = a.label;
-    btn.innerHTML = `${a.label}<span class="check">✓</span>`;
-    btn.addEventListener('click', e => { spawnRipple(btn,e); toggleAlert(a.label); });
-    grid.appendChild(btn);
+function buildHoldGrid(){
+  const g=document.getElementById('holdGrid');
+  HOLD_PRODUCTS.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='hold-btn'; b.dataset.label=p.label;
+    b.innerHTML=`<div class="hold-btn-name">${p.label}</div><div class="hold-btn-timer" id="holdTimer_${p.label.replace(/[\s&]/g,'_')}"></div>`;
+    b.addEventListener('click',()=>openHoldTimeModal(p.label,p.mac));
+    g.appendChild(b);
   });
 }
 
-function buildHoldGrid() {
-  const grid = document.getElementById('holdGrid');
-  HOLD_PRODUCTS.forEach(p => {
-    const btn = document.createElement('button');
-    btn.className = 'hold-btn';
-    btn.dataset.label = p.label;
-    btn.innerHTML = `<div class="hold-btn-name">${p.label}</div><div class="hold-btn-timer" id="holdTimer_${p.label.replace(/\s/g,'_')}"></div>`;
-    btn.addEventListener('click', () => openHoldModal(p.label, p.mac));
-    grid.appendChild(btn);
-  });
-}
-
-// ── Hold modal ──
-function openHoldModal(label, isMac) {
-  holdTarget = label;
-  selectedQuick = null;
-  document.getElementById('holdModalTitle').textContent = `Hold: ${label}`;
-  document.getElementById('holdQuickSection').style.display = isMac ? 'none' : '';
-  document.getElementById('holdMacSection').style.display  = isMac ? '' : 'none';
-  document.getElementById('holdMacInput').value = '';
-
-  if (!isMac) {
-    const container = document.getElementById('holdQuickBtns');
-    container.innerHTML = '';
-    QUICK_TIMES.forEach(sec => {
-      const b = document.createElement('button');
-      b.className = 'hold-quick-btn';
-      b.textContent = (sec/60) + 'm';
-      b.onclick = () => {
-        container.querySelectorAll('.hold-quick-btn').forEach(x => x.classList.remove('selected'));
-        b.classList.add('selected');
-        selectedQuick = sec;
-      };
-      // Pre-select if already holding
-      if (holdTimers.has(label) && holdTimers.get(label).totalSeconds === sec) {
-        b.classList.add('selected'); selectedQuick = sec;
+function toggleAlert(label){
+  if(activeAlerts.has(label)){dismissAlert(label);return;}
+  const a=ALERTS.find(x=>x.label===label);
+  const start=timerMode==='30'?30:null;
+  const entry={color:a.color,isDark:a.dark,seconds:start,totalSeconds:start,intervalId:null,countdownEl:null,cardEl:null};
+  activeAlerts.set(label,entry);
+  addLog(label,a.color,'triggered');
+  if(start!==null){
+    entry.intervalId=setInterval(()=>{
+      entry.seconds--;
+      if(entry.countdownEl){
+        entry.countdownEl.textContent=`Clearing in ${entry.seconds}s`;
+        if(entry.seconds<=5){entry.countdownEl.classList.add('urgent');if(entry.cardEl)entry.cardEl.classList.add('urgent-flash');}
       }
-      container.appendChild(b);
+      if(entry.seconds<=0){clearInterval(entry.intervalId);addLog(label,entry.color,'auto-cleared');dismissAlert(label);}
+    },1000);
+  }
+  syncButtonStates(); renderCards(); updateUI();
+}
+
+function repeatAlert(label){
+  const e=activeAlerts.get(label);
+  if(!e||e.totalSeconds===null)return;
+  clearInterval(e.intervalId);
+  e.seconds=e.totalSeconds;
+  if(e.cardEl)e.cardEl.classList.remove('urgent-flash');
+  if(e.countdownEl){e.countdownEl.textContent=`Clearing in ${e.seconds}s`;e.countdownEl.classList.remove('urgent');}
+  addLog(label,e.color,'reset');
+  e.intervalId=setInterval(()=>{
+    e.seconds--;
+    if(e.countdownEl){
+      e.countdownEl.textContent=`Clearing in ${e.seconds}s`;
+      if(e.seconds<=5){e.countdownEl.classList.add('urgent');if(e.cardEl)e.cardEl.classList.add('urgent-flash');}
+    }
+    if(e.seconds<=0){clearInterval(e.intervalId);addLog(label,e.color,'auto-cleared');dismissAlert(label);}
+  },1000);
+}
+
+function syncButtonStates(){
+  document.querySelectorAll('.alert-btn').forEach(b=>b.classList.toggle('active',activeAlerts.has(b.dataset.label)));
+}
+
+function updateUI(){
+  const hasAlerts=activeAlerts.size>0;
+  document.getElementById('emptyState').style.display=hasAlerts?'none':'';
+  document.getElementById('alertCardsRow').style.display=hasAlerts?'flex':'none';
+  const cb=document.getElementById('clearAllBtn');
+  cb.classList.toggle('visible',hasAlerts);
+}
+
+function renderCards(){
+  const row=document.getElementById('alertCardsRow');
+  row.innerHTML='';
+  let delay=0;
+  activeAlerts.forEach((entry,label)=>{
+    const card=document.createElement('div');
+    card.className='alert-card';
+    card.style.background=entry.color; card.style.color=entry.isDark?'black':'white';
+    card.style.animationDelay=delay+'s'; delay+=.06;
+    if(entry.seconds!==null&&entry.seconds<=5)card.classList.add('urgent-flash');
+    entry.cardEl=card;
+
+    const lbl=document.createElement('div'); lbl.className='alert-card-label'; lbl.textContent=label;
+
+    const cd=document.createElement('div');
+    cd.className='alert-card-countdown'+(entry.seconds!==null&&entry.seconds<=5?' urgent':'');
+    cd.textContent=entry.seconds!==null?`Clearing in ${entry.seconds}s`:'Dismiss when ready';
+    entry.countdownEl=cd;
+
+    const acts=document.createElement('div'); acts.className='card-actions';
+    if(entry.totalSeconds!==null){
+      const rb=document.createElement('button'); rb.className='alert-card-repeat'; rb.textContent='🔁 Reset';
+      if(entry.isDark){rb.style.borderColor='rgba(0,0,0,0.3)';rb.style.background='rgba(0,0,0,0.1)';rb.style.color='black';}
+      rb.onclick=()=>repeatAlert(label); acts.appendChild(rb);
+    }
+    const db=document.createElement('button'); db.className='alert-card-dismiss'; db.textContent='Dismiss';
+    if(entry.isDark){db.style.borderColor='rgba(0,0,0,0.3)';db.style.background='rgba(0,0,0,0.1)';db.style.color='black';}
+    db.onclick=()=>animateDismiss(label,card); acts.appendChild(db);
+
+    card.appendChild(lbl); card.appendChild(cd); card.appendChild(acts);
+    row.appendChild(card);
+  });
+}
+
+function animateDismiss(label,cardEl){
+  cardEl.classList.add('removing');
+  cardEl.addEventListener('animationend',()=>{addLog(label,activeAlerts.get(label)?.color,'dismissed');dismissAlert(label);},{once:true});
+}
+
+function dismissAlert(label){
+  const e=activeAlerts.get(label); if(!e)return;
+  clearInterval(e.intervalId); activeAlerts.delete(label);
+  syncButtonStates(); renderCards(); updateUI();
+}
+
+function clearAll(){
+  activeAlerts.forEach((e,l)=>{clearInterval(e.intervalId);addLog(l,e.color,'dismissed');});
+  activeAlerts.clear(); syncButtonStates(); renderCards(); updateUI();
+}
+
+// ── Hold timers ──
+function openHoldPicker(){
+  const g=document.getElementById('holdPickerGrid'); g.innerHTML='';
+  HOLD_PRODUCTS.forEach(p=>{
+    const i=document.createElement('div');
+    i.className='hold-picker-item'+(holdTimers.has(p.label)?' already-holding':'');
+    i.textContent=holdTimers.has(p.label)?`${p.label} ✓`:p.label;
+    i.onclick=()=>{closeHoldPicker();openHoldTimeModal(p.label,p.mac);};
+    g.appendChild(i);
+  });
+  document.getElementById('holdPickerModal').classList.add('show');
+}
+function closeHoldPicker(){document.getElementById('holdPickerModal').classList.remove('show');}
+
+function openHoldTimeModal(label,isMac){
+  holdTarget=label; selectedQuick=null;
+  document.getElementById('holdTimeModalTitle').textContent=`Hold: ${label}`;
+  document.getElementById('holdQuickSection').style.display=isMac?'none':'';
+  document.getElementById('holdMacSection').style.display=isMac?'':'none';
+  document.getElementById('holdMacInput').value='';
+  // Show cancel hold button only if a timer is already running for this product
+  document.getElementById('cancelHoldBtn').style.display=holdTimers.has(label)?'block':'none';
+  if(!isMac){
+    const c=document.getElementById('holdQuickBtns'); c.innerHTML='';
+    QUICK_TIMES.forEach(sec=>{
+      const b=document.createElement('button'); b.className='hold-quick-btn'; b.textContent=(sec/60)+'m';
+      if(holdTimers.has(label)&&holdTimers.get(label).totalSeconds===sec){b.classList.add('selected');selectedQuick=sec;}
+      b.onclick=()=>{c.querySelectorAll('.hold-quick-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');selectedQuick=sec;};
+      c.appendChild(b);
     });
   }
-
-  document.getElementById('holdModalBackdrop').classList.add('show');
+  document.getElementById('holdTimeModal').classList.add('show');
 }
 
-function closeHoldModal() {
-  document.getElementById('holdModalBackdrop').classList.remove('show');
-  holdTarget = null; selectedQuick = null;
+function cancelHoldFromModal(){
+  if(holdTarget) cancelHold(holdTarget);
+  closeHoldTimeModal();
 }
+function closeHoldTimeModal(){document.getElementById('holdTimeModal').classList.remove('show');holdTarget=null;selectedQuick=null;}
 
-function startHold() {
-  if (!holdTarget) return;
-  const prod = HOLD_PRODUCTS.find(p => p.label === holdTarget);
+function startHold(){
+  if(!holdTarget)return;
+  const prod=HOLD_PRODUCTS.find(p=>p.label===holdTarget);
   let seconds;
-  if (prod.mac) {
-    const val = parseInt(document.getElementById('holdMacInput').value);
-    if (!val || val < 1) { document.getElementById('holdMacInput').focus(); return; }
-    seconds = val * 60;
+  if(prod.mac){
+    const v=parseInt(document.getElementById('holdMacInput').value);
+    if(!v||v<1){document.getElementById('holdMacInput').focus();return;}
+    seconds=v*60;
   } else {
-    if (!selectedQuick) return;
-    seconds = selectedQuick;
+    if(!selectedQuick)return; seconds=selectedQuick;
   }
-
-  // Clear existing if any
-  if (holdTimers.has(holdTarget)) clearInterval(holdTimers.get(holdTarget).intervalId);
-
-  const entry = { seconds, totalSeconds: seconds, intervalId: null, timerEl: null, btnEl: null };
-  holdTimers.set(holdTarget, entry);
-  addLog(holdTarget, '#e8600a', 'hold started');
-
-  const key = holdTarget.replace(/\s/g,'_');
-  const timerEl = document.getElementById(`holdTimer_${key}`);
-  const btnEl   = timerEl?.closest('.hold-btn');
-  entry.timerEl = timerEl;
-  entry.btnEl   = btnEl;
-  if (btnEl) btnEl.classList.add('holding');
-  if (timerEl) timerEl.textContent = formatHoldTime(seconds);
-
-  entry.intervalId = setInterval(() => {
+  if(holdTimers.has(holdTarget))clearInterval(holdTimers.get(holdTarget).intervalId);
+  const key=holdTarget.replace(/[\s&]/g,'_');
+  const timerEl=document.getElementById(`holdTimer_${key}`);
+  const entry={seconds,totalSeconds:seconds,intervalId:null,timerEl,btnEl:timerEl?.closest('.hold-btn')};
+  holdTimers.set(holdTarget,entry);
+  addLog(holdTarget,'#e8600a','hold started');
+  if(entry.btnEl)entry.btnEl.classList.add('holding');
+  if(timerEl)timerEl.textContent=formatHoldTime(seconds);
+  const cl=holdTarget;
+  entry.intervalId=setInterval(()=>{
     entry.seconds--;
-    if (entry.timerEl) {
-      entry.timerEl.textContent = formatHoldTime(entry.seconds);
-      if (entry.seconds <= 30) entry.timerEl.classList.add('urgent');
-    }
-    if (entry.seconds <= 0) {
-      clearInterval(entry.intervalId);
-      expireHold(holdTarget === null ? entry : holdTarget);
-    }
-  }, 1000);
-
-  // Capture label before closing
-  const capturedLabel = holdTarget;
-  entry.intervalId = (() => {
-    clearInterval(entry.intervalId);
-    return setInterval(() => {
-      entry.seconds--;
-      if (entry.timerEl) {
-        entry.timerEl.textContent = formatHoldTime(entry.seconds);
-        if (entry.seconds <= 30) entry.timerEl.classList.add('urgent');
-      }
-      if (entry.overlayTimeEl) {
-        entry.overlayTimeEl.textContent = formatHoldTime(entry.seconds);
-        if (entry.seconds <= 30) entry.overlayTimeEl.classList.add('urgent');
-      }
-      if (entry.seconds <= 0) { clearInterval(entry.intervalId); expireHold(capturedLabel); }
-    }, 1000);
-  })();
-
-  closeHoldModal();
-  // Refresh overlay hold section if open
-  if (document.getElementById('overlay').classList.contains('show')) renderHoldOverlay();
+    if(entry.timerEl){entry.timerEl.textContent=formatHoldTime(entry.seconds);if(entry.seconds<=30)entry.timerEl.classList.add('urgent');}
+    if(entry.seconds<=0){clearInterval(entry.intervalId);expireHold(cl);}
+  },1000);
+  closeHoldTimeModal();
 }
 
-function expireHold(label) {
-  const entry = holdTimers.get(label);
-  if (!entry) return;
-  clearInterval(entry.intervalId);
-  holdTimers.delete(label);
-  addLog(label, '#e8600a', 'hold expired');
-  const key = label.replace(/\s/g,'_');
-  const timerEl = document.getElementById(`holdTimer_${key}`);
-  const btnEl   = timerEl?.closest('.hold-btn');
-  if (btnEl) btnEl.classList.remove('holding');
-  if (timerEl) { timerEl.textContent = ''; timerEl.classList.remove('urgent'); }
-  // Refresh overlay hold section if open
-  if (document.getElementById('overlay').classList.contains('show')) renderHoldOverlay();
+function cancelHold(label){
+  const e=holdTimers.get(label); if(!e)return;
+  clearInterval(e.intervalId); holdTimers.delete(label);
+  addLog(label,'#e8600a','hold cancelled');
+  const k=label.replace(/[\s&]/g,'_');
+  const tel=document.getElementById(`holdTimer_${k}`);
+  const bel=tel?.closest('.hold-btn');
+  if(bel)bel.classList.remove('holding'); if(tel){tel.textContent='';tel.classList.remove('urgent');}
 }
 
-function formatHoldTime(s) {
-  if (s <= 0) return '0:00';
-  const m = Math.floor(s/60), sec = s % 60;
-  return `${m}:${sec.toString().padStart(2,'0')}`;
+function expireHold(label){
+  const e=holdTimers.get(label); if(!e)return;
+  clearInterval(e.intervalId); holdTimers.delete(label);
+  addLog(label,'#e8600a','hold expired');
+  const k=label.replace(/[\s&]/g,'_');
+  const tel=document.getElementById(`holdTimer_${k}`);
+  const bel=tel?.closest('.hold-btn');
+  if(bel)bel.classList.remove('holding'); if(tel){tel.textContent='';tel.classList.remove('urgent');}
 }
 
-// ── Alerts ──
-function toggleAlert(label) {
-  if (activeAlerts.has(label)) { dismissAlert(label); return; }
-  const a = ALERTS.find(x => x.label === label);
-  const start = timerMode === '30' ? 30 : null;
-  const entry = { color:a.color, isDark:a.dark, seconds:start, totalSeconds:start, intervalId:null, countdownEl:null, cardEl:null };
-  activeAlerts.set(label, entry);
-  addLog(label, a.color, 'triggered');
-
-  if (start !== null) {
-    entry.intervalId = setInterval(() => {
-      entry.seconds--;
-      if (entry.countdownEl) {
-        entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`;
-        if (entry.seconds <= 5) { entry.countdownEl.classList.add('urgent'); if(entry.cardEl) entry.cardEl.classList.add('urgent-flash'); }
-      }
-      if (entry.seconds <= 0) { clearInterval(entry.intervalId); addLog(label, entry.color, 'auto-cleared'); dismissAlert(label); }
-    }, 1000);
-  }
-
-  syncButtonStates(); updateFooter();
-  if (document.getElementById('overlay').classList.contains('show')) renderCards();
-}
-
-function repeatAlert(label) {
-  const entry = activeAlerts.get(label);
-  if (!entry || entry.totalSeconds === null) return;
-  clearInterval(entry.intervalId);
-  entry.seconds = entry.totalSeconds;
-  if (entry.cardEl) entry.cardEl.classList.remove('urgent-flash');
-  if (entry.countdownEl) { entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`; entry.countdownEl.classList.remove('urgent'); }
-  addLog(label, entry.color, 'reset');
-  entry.intervalId = setInterval(() => {
-    entry.seconds--;
-    if (entry.countdownEl) {
-      entry.countdownEl.textContent = `Clearing in ${entry.seconds}s`;
-      if (entry.seconds <= 5) { entry.countdownEl.classList.add('urgent'); if(entry.cardEl) entry.cardEl.classList.add('urgent-flash'); }
-    }
-    if (entry.seconds <= 0) { clearInterval(entry.intervalId); addLog(label, entry.color, 'auto-cleared'); dismissAlert(label); }
-  }, 1000);
-}
-
-function syncButtonStates() {
-  document.querySelectorAll('.alert-btn,.add-btn').forEach(btn => btn.classList.toggle('active', activeAlerts.has(btn.dataset.label)));
-}
-
-function updateFooter() {
-  const viewBtn = document.getElementById('viewBtn');
-  const clearBtn = document.getElementById('clearBtn');
-  const count = activeAlerts.size;
-  if (count === 0) { viewBtn.classList.remove('ready'); viewBtn.textContent='View Alerts'; clearBtn.classList.remove('visible'); }
-  else { viewBtn.classList.add('ready'); viewBtn.textContent=`View ${count} Alert${count>1?'s':''} →`; clearBtn.classList.add('visible'); }
-}
-
-function renderCards() {
-  const container = document.getElementById('alertCards');
-  container.innerHTML = '';
-  let delay = 0;
-  activeAlerts.forEach((entry, label) => {
-    const card = document.createElement('div');
-    card.className = 'alert-card';
-    card.style.background = entry.color;
-    card.style.color = entry.isDark ? 'black' : 'white';
-    card.style.animationDelay = delay+'s'; delay+=.06;
-    if (entry.seconds !== null && entry.seconds <= 5) card.classList.add('urgent-flash');
-    entry.cardEl = card;
-
-    const lbl = document.createElement('div');
-    lbl.className = 'alert-card-label'; lbl.textContent = label;
-
-    const cdEl = document.createElement('div');
-    cdEl.className = 'alert-card-countdown' + (entry.seconds !== null && entry.seconds <= 5 ? ' urgent' : '');
-    cdEl.textContent = entry.seconds !== null ? `Clearing in ${entry.seconds}s` : 'Dismiss when ready';
-    entry.countdownEl = cdEl;
-
-    const actions = document.createElement('div');
-    actions.className = 'card-actions';
-
-    if (entry.totalSeconds !== null) {
-      const repeatBtn = document.createElement('button');
-      repeatBtn.className = 'alert-card-repeat'; repeatBtn.textContent = '🔁 Reset';
-      if (entry.isDark) { repeatBtn.style.borderColor='rgba(0,0,0,0.3)'; repeatBtn.style.background='rgba(0,0,0,0.1)'; repeatBtn.style.color='black'; }
-      repeatBtn.onclick = () => repeatAlert(label);
-      actions.appendChild(repeatBtn);
-    }
-
-    const dismissBtn = document.createElement('button');
-    dismissBtn.className = 'alert-card-dismiss'; dismissBtn.textContent = 'Dismiss';
-    if (entry.isDark) { dismissBtn.style.borderColor='rgba(0,0,0,0.3)'; dismissBtn.style.background='rgba(0,0,0,0.1)'; dismissBtn.style.color='black'; }
-    dismissBtn.onclick = () => animateDismiss(label, card);
-    actions.appendChild(dismissBtn);
-
-    card.appendChild(lbl); card.appendChild(cdEl); card.appendChild(actions);
-    container.appendChild(card);
-  });
-  document.getElementById('overlayTitle').textContent = activeAlerts.size===1 ? 'Active Alert' : `${activeAlerts.size} Active Alerts`;
-}
-
-function animateDismiss(label, cardEl) {
-  if (cardEl) {
-    cardEl.classList.add('removing');
-    cardEl.addEventListener('animationend', () => { addLog(label, activeAlerts.get(label)?.color, 'dismissed'); dismissAlert(label); }, { once:true });
-  } else { dismissAlert(label); }
-}
-
-function dismissAlert(label) {
-  const entry = activeAlerts.get(label);
-  if (!entry) return;
-  clearInterval(entry.intervalId);
-  activeAlerts.delete(label);
-  syncButtonStates(); updateFooter();
-  if (activeAlerts.size === 0) closeOverlay(); else renderCards();
-}
-
-function showOverlay() {
-  if (activeAlerts.size === 0) return;
-  const overlay = document.getElementById('overlay');
-  overlay.classList.remove('hide'); overlay.classList.add('show');
-  renderCards();
-  renderHoldOverlay();
-}
-
-function renderHoldOverlay() {
-  const section = document.getElementById('holdOverlaySection');
-  const grid = document.getElementById('holdOverlayGrid');
-  grid.innerHTML = '';
-  section.style.display = ''; // always visible so + Add Hold is accessible
-  if (holdTimers.size === 0) return;
-  let delay = 0;
-  holdTimers.forEach((entry, label) => {
-    const card = document.createElement('div');
-    card.className = 'hold-overlay-card';
-    card.style.animationDelay = (delay * 0.05) + 's'; delay++;
-
-    const nameEl = document.createElement('div');
-    nameEl.className = 'hold-overlay-name';
-    nameEl.textContent = label;
-
-    const timeEl = document.createElement('div');
-    timeEl.className = 'hold-overlay-time' + (entry.seconds <= 30 ? ' urgent' : '');
-    timeEl.textContent = formatHoldTime(entry.seconds);
-    // Keep this live ref so hold timer ticks update it
-    entry.overlayTimeEl = timeEl;
-
-    card.appendChild(nameEl);
-    card.appendChild(timeEl);
-    card.onclick = () => openHoldModal(label, HOLD_PRODUCTS.find(p=>p.label===label)?.mac || false);
-    grid.appendChild(card);
-  });
-}
-
-function closeOverlay() {
-  const overlay = document.getElementById('overlay');
-  overlay.classList.add('hide');
-  overlay.addEventListener('animationend', () => overlay.classList.remove('show','hide'), { once:true });
-}
-
-function clearAll() {
-  activeAlerts.forEach((entry,label) => { clearInterval(entry.intervalId); addLog(label,entry.color,'dismissed'); });
-  activeAlerts.clear(); syncButtonStates(); closeOverlay(); updateFooter();
+function formatHoldTime(s){
+  if(s<=0)return'0:00';
+  return`${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
 }
 
 // ── Log ──
-function addLog(label, color, action) {
-  const now = new Date();
-  const time = now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  alertLog.unshift({ label, color, action, time });
-  if (alertLog.length > 80) alertLog.pop();
+function addLog(label,color,action){
+  const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  alertLog.unshift({label,color,action,time}); if(alertLog.length>80)alertLog.pop();
 }
-
-function openLog() { renderLog(); const p=document.getElementById('logPanel'); p.classList.remove('hide'); p.classList.add('show'); }
-function closeLog() { const p=document.getElementById('logPanel'); p.classList.add('hide'); p.addEventListener('animationend',()=>p.classList.remove('show','hide'),{once:true}); }
-function clearLog() { alertLog=[]; renderLog(); }
-
-function renderLog() {
-  const list = document.getElementById('logList');
-  if (alertLog.length === 0) { list.innerHTML='<div class="log-empty">No activity this session yet.</div>'; return; }
+function openLog(){renderLog();const p=document.getElementById('logPanel');p.classList.remove('hide');p.classList.add('show');}
+function closeLog(){const p=document.getElementById('logPanel');p.classList.add('hide');p.addEventListener('animationend',()=>p.classList.remove('show','hide'),{once:true});}
+function clearLog(){alertLog=[];renderLog();}
+function renderLog(){
+  const list=document.getElementById('logList');
+  if(!alertLog.length){list.innerHTML='<div class="log-empty">No activity this session yet.</div>';return;}
   list.innerHTML='';
-  alertLog.forEach((entry,i) => {
-    const el = document.createElement('div');
-    el.className='log-entry'; el.style.animationDelay=(i*.03)+'s';
-    const icons = { triggered:'🔔', reset:'🔁', dismissed:'✓', 'auto-cleared':'⏱', 'hold started':'🫳', 'hold expired':'⚠️' };
-    el.innerHTML=`<div class="log-dot" style="background:${entry.color}"></div><div class="log-label">${entry.label}</div><div class="log-action">${icons[entry.action]||''} ${entry.action}</div><div class="log-time">${entry.time}</div>`;
+  const icons={triggered:'🔔',reset:'🔁',dismissed:'✓','auto-cleared':'⏱','hold started':'🫳','hold expired':'⚠️','hold cancelled':'✕'};
+  alertLog.forEach((e,i)=>{
+    const el=document.createElement('div'); el.className='log-entry'; el.style.animationDelay=(i*.03)+'s';
+    el.innerHTML=`<div class="log-dot" style="background:${e.color}"></div><div class="log-label">${e.label}</div><div class="log-action">${icons[e.action]||''} ${e.action}</div><div class="log-time">${e.time}</div>`;
     list.appendChild(el);
   });
 }
 
-// ── Hold picker from overlay ──
-function openHoldPickerFromOverlay() {
-  const grid = document.getElementById('holdPickerGrid');
-  grid.innerHTML = '';
-  HOLD_PRODUCTS.forEach(p => {
-    const item = document.createElement('div');
-    item.className = 'hold-picker-item' + (holdTimers.has(p.label) ? ' already-holding' : '');
-    item.textContent = holdTimers.has(p.label) ? `${p.label} ✓` : p.label;
-    item.onclick = () => {
-      closeHoldPicker();
-      openHoldModal(p.label, p.mac);
-    };
-    grid.appendChild(item);
-  });
-  document.getElementById('holdPickerBackdrop').classList.add('show');
+// ── Fullscreen ──
+function toggleFullscreen(){
+  const b=document.getElementById('fullscreenBtn');
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().then(()=>{b.textContent='⛶ Exit Full';b.classList.add('active-mode');}).catch(()=>{});
+  } else {
+    document.exitFullscreen().then(()=>{b.textContent='⛶ Fullscreen';b.classList.remove('active-mode');}).catch(()=>{});
+  }
 }
-
-function closeHoldPicker() {
-  document.getElementById('holdPickerBackdrop').classList.remove('show');
-}
-
-// Close picker on backdrop tap
-document.getElementById('holdPickerBackdrop').addEventListener('click', e => {
-  if (e.target === document.getElementById('holdPickerBackdrop')) closeHoldPicker();
+document.addEventListener('fullscreenchange',()=>{
+  const b=document.getElementById('fullscreenBtn');
+  if(!document.fullscreenElement){b.textContent='⛶ Fullscreen';b.classList.remove('active-mode');}
 });
 
-// ── Fullscreen ──
-function toggleFullscreen() {
-  const btn = document.getElementById('fullscreenBtn');
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().then(() => {
-      btn.textContent = '⛶ Exit Full';
-      btn.classList.add('active-mode');
-    }).catch(() => {});
-  } else {
-    document.exitFullscreen().then(() => {
-      btn.textContent = '⛶ Fullscreen';
-      btn.classList.remove('active-mode');
-    }).catch(() => {});
-  }
-}
-document.addEventListener('fullscreenchange', () => {
-  const btn = document.getElementById('fullscreenBtn');
-  if (!document.fullscreenElement) {
-    btn.textContent = '⛶ Fullscreen';
-    btn.classList.remove('active-mode');
-  }
+['holdTimeModal','holdPickerModal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{
+    if(e.target===document.getElementById(id))document.getElementById(id).classList.remove('show');
+  });
 });
 
 buildMainGrid();
-buildAddGrid();
 buildHoldGrid();
 </script>
 </body>
