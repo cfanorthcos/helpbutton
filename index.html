@@ -534,9 +534,21 @@ function formatHoldTime(s){
 }
 
 // ── Log ──
-function addLog(label,color,action){
-  const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  alertLog.unshift({label,color,action,time}); if(alertLog.length>80)alertLog.pop();
+const SHEET_URL = 'https://script.google.com/a/macros/cfanorthcos.com/s/AKfycbwL4WiC7yag1xOBPsQPNpPxII8STYcAUQnAtb0MI1bmcORe5Yp4LWDlAPADhS6xvWBd9w/exec';
+
+function addLog(label, color, action){
+  const time = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const timestamp = new Date().toLocaleString();
+  alertLog.unshift({label,color,action,time});
+  if(alertLog.length>80) alertLog.pop();
+
+  // Send to Google Sheet
+  fetch(SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ timestamp, label, action })
+  }).catch(()=>{});
 }
 function openLog(){renderLog();const p=document.getElementById('logPanel');p.classList.remove('hide');p.classList.add('show');}
 function closeLog(){const p=document.getElementById('logPanel');p.classList.add('hide');p.addEventListener('animationend',()=>p.classList.remove('show','hide'),{once:true});}
