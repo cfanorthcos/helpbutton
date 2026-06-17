@@ -272,6 +272,33 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 .summary-bar-count { font-size:0.82rem; font-weight:700; color:#777; width:30px; text-align:right; flex-shrink:0; }
 
 .summary-empty { color:#aaa; font-size:0.92rem; text-align:center; margin-top:40px; }
+
+/* ── Settings panel ── */
+.settings-body { flex:1; overflow-y:auto; padding:18px 20px; display:flex; flex-direction:column; gap:6px; }
+.settings-section-title { font-size:0.8rem; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.05em; }
+.settings-hint { font-size:0.85rem; color:#aaa; margin-bottom:10px; }
+.settings-alert-list { display:flex; flex-direction:column; gap:8px; }
+.settings-alert-row {
+  display:flex; flex-direction:column; gap:10px;
+  background:#f8f8f8; border-radius:14px; padding:12px 14px;
+}
+.settings-alert-topline { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.settings-alert-name { display:flex; align-items:center; gap:10px; font-size:0.95rem; font-weight:700; color:#333; }
+.settings-alert-swatch { width:16px; height:16px; border-radius:5px; flex-shrink:0; }
+.settings-mode-toggle { display:flex; background:white; border:1.5px solid #e0e0e0; border-radius:12px; overflow:hidden; flex-shrink:0; }
+.settings-mode-btn {
+  padding:7px 12px; font-size:0.78rem; font-weight:700; color:#999;
+  background:none; border:none; cursor:pointer; transition:background .2s,color .2s; white-space:nowrap;
+}
+.settings-mode-btn.active { background:#1a1a2e; color:white; }
+.settings-seconds-row { display:flex; align-items:center; gap:8px; padding-top:2px; border-top:1px solid #eee; padding-top:10px; }
+.settings-seconds-row label { font-size:0.82rem; font-weight:700; color:#777; }
+.settings-seconds-input {
+  width:70px; border:1.5px solid #e0e0e0; border-radius:10px; padding:6px 10px;
+  font-size:0.95rem; font-weight:700; color:#333; outline:none; transition:border-color .2s;
+}
+.settings-seconds-input:focus { border-color:#1a1a2e; }
+.settings-seconds-unit { font-size:0.82rem; color:#999; }
 </style>
 </head>
 <body>
@@ -282,17 +309,12 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   <div class="top-bar">
     <div class="top-left">
       <button class="icon-btn" id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+      <button class="icon-btn" onclick="openSettings()">⚙️ Settings</button>
     </div>
     <div class="top-right">
       <button class="clear-all-btn" id="clearAllBtn" onclick="clearAll()">Clear All</button>
       <button class="icon-btn" onclick="openLog()">📋 Log</button>
     </div>
-  </div>
-
-  <!-- Timer toggle -->
-  <div class="timer-toggle">
-    <button class="timer-opt active" id="timerOpt30" onclick="setTimerMode('30')">⏱ 30 Second</button>
-    <button class="timer-opt" id="timerOptUnlim" onclick="setTimerMode('unlimited')">∞ Dismiss Only</button>
   </div>
 
   <!-- Cards area: empty state or active cards -->
@@ -348,6 +370,19 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   </div>
 </div>
 
+<!-- Settings panel -->
+<div id="settingsPanel" class="log-panel">
+  <div class="log-header">
+    <div class="log-header-title">Settings</div>
+    <button class="log-close-btn" onclick="closeSettings()">Done</button>
+  </div>
+  <div class="settings-body">
+    <div class="settings-section-title">Alert Timer Behavior</div>
+    <div class="settings-hint">Choose how each alert clears — auto-clear after 30 seconds, or stay until someone dismisses it.</div>
+    <div id="settingsAlertList" class="settings-alert-list"></div>
+  </div>
+</div>
+
 <!-- Log panel -->
 <div id="logPanel" class="log-panel">
   <div class="log-header">
@@ -367,14 +402,14 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 
 <script>
 const ALERTS = [
-  { label:'Fries',                      color:'#FFC107', dark:true  },
-  { label:'Need Secondary Fry',         color:'#FF6F00', dark:false },
-  { label:'Primary – Specials',         color:'#E53935', dark:false },
-  { label:'Primary Chutes',             color:'#8E24AA', dark:false },
-  { label:'Secondary – Nuggets/Strips', color:'#6D4C41', dark:false },
-  { label:'Secondary – Mac/Salads',     color:'#2E7D32', dark:false },
-  { label:'Secondary Chutes',           color:'#212121', dark:false },
-  { label:'Prep',                       color:'#00838F', dark:false },
+  { label:'Fries',                      color:'#FFC107', dark:true,  mode:'unlimited', seconds:30 },
+  { label:'Need Secondary Fry',         color:'#FF6F00', dark:false, mode:'unlimited', seconds:30 },
+  { label:'Primary – Specials',         color:'#E53935', dark:false, mode:'unlimited', seconds:30 },
+  { label:'Primary Chutes',             color:'#8E24AA', dark:false, mode:'unlimited', seconds:30 },
+  { label:'Secondary – Nuggets/Strips', color:'#6D4C41', dark:false, mode:'unlimited', seconds:30 },
+  { label:'Secondary – Mac/Salads',     color:'#2E7D32', dark:false, mode:'unlimited', seconds:30 },
+  { label:'Secondary Chutes',           color:'#212121', dark:false, mode:'unlimited', seconds:30 },
+  { label:'Prep',                       color:'#00838F', dark:false, mode:'unlimited', seconds:30 },
 ];
 
 const HOLD_PRODUCTS = [
@@ -390,13 +425,7 @@ const HOLD_PRODUCTS = [
 const QUICK_TIMES = [60,120,180,240,300];
 const activeAlerts = new Map();
 const holdTimers   = new Map();
-let alertLog=[], timerMode='30', holdTarget=null, selectedQuick=null;
-
-function setTimerMode(m){
-  timerMode=m;
-  document.getElementById('timerOpt30').classList.toggle('active',m==='30');
-  document.getElementById('timerOptUnlim').classList.toggle('active',m==='unlimited');
-}
+let alertLog=[], holdTarget=null, selectedQuick=null;
 
 function spawnRipple(btn,e){
   const r=btn.getBoundingClientRect();
@@ -432,7 +461,7 @@ function buildHoldGrid(){
 function toggleAlert(label){
   if(activeAlerts.has(label)){dismissAlert(label);return;}
   const a=ALERTS.find(x=>x.label===label);
-  const start=timerMode==='30'?30:null;
+  const start=a.mode==='timed'?a.seconds:null;
   const entry={color:a.color,isDark:a.dark,seconds:start,totalSeconds:start,intervalId:null,countdownEl:null,cardEl:null};
   activeAlerts.set(label,entry);
   addLog(label,a.color,'triggered');
@@ -699,6 +728,81 @@ function addLog(label, color, action){
     body: JSON.stringify({ timestamp, label, action })
   }).catch(()=>{});
 }
+// ── Settings ──
+function openSettings(){
+  renderSettings();
+  const p=document.getElementById('settingsPanel'); p.classList.remove('hide'); p.classList.add('show');
+}
+function closeSettings(){
+  const p=document.getElementById('settingsPanel'); p.classList.add('hide');
+  p.addEventListener('animationend',()=>p.classList.remove('show','hide'),{once:true});
+}
+function renderSettings(){
+  const list=document.getElementById('settingsAlertList');
+  list.innerHTML='';
+  ALERTS.forEach(a=>{
+    const row=document.createElement('div'); row.className='settings-alert-row';
+
+    const topLine=document.createElement('div'); topLine.className='settings-alert-topline';
+
+    const nameWrap=document.createElement('div'); nameWrap.className='settings-alert-name';
+    const swatch=document.createElement('div'); swatch.className='settings-alert-swatch'; swatch.style.background=a.color;
+    const nameText=document.createElement('span'); nameText.textContent=a.label;
+    nameWrap.appendChild(swatch); nameWrap.appendChild(nameText);
+
+    const toggle=document.createElement('div'); toggle.className='settings-mode-toggle';
+    const bTimed=document.createElement('button'); bTimed.className='settings-mode-btn'+(a.mode==='timed'?' active':''); bTimed.textContent='⏱ Timed';
+    const bUnlim=document.createElement('button'); bUnlim.className='settings-mode-btn'+(a.mode==='unlimited'?' active':''); bUnlim.textContent='∞ Dismiss Only';
+
+    bTimed.onclick=()=>{ a.mode='timed'; saveSettings(); renderSettings(); };
+    bUnlim.onclick=()=>{ a.mode='unlimited'; saveSettings(); renderSettings(); };
+
+    toggle.appendChild(bTimed); toggle.appendChild(bUnlim);
+    topLine.appendChild(nameWrap); topLine.appendChild(toggle);
+    row.appendChild(topLine);
+
+    if(a.mode==='timed'){
+      const secRow=document.createElement('div'); secRow.className='settings-seconds-row';
+      const secLabel=document.createElement('label'); secLabel.textContent='Auto-clear after';
+      const secInput=document.createElement('input');
+      secInput.type='number'; secInput.min='5'; secInput.max='600'; secInput.value=a.seconds;
+      secInput.className='settings-seconds-input';
+      secInput.oninput=()=>{
+        const v=parseInt(secInput.value);
+        if(v && v>=5){ a.seconds=v; saveSettings(); }
+      };
+      const secUnit=document.createElement('span'); secUnit.textContent='seconds'; secUnit.className='settings-seconds-unit';
+      secRow.appendChild(secLabel); secRow.appendChild(secInput); secRow.appendChild(secUnit);
+      row.appendChild(secRow);
+    }
+
+    list.appendChild(row);
+  });
+}
+
+// ── Persist settings to localStorage ──
+function saveSettings(){
+  try{
+    const data = ALERTS.map(a=>({label:a.label, mode:a.mode, seconds:a.seconds}));
+    localStorage.setItem('kitchenAlertSettings', JSON.stringify(data));
+  }catch(e){}
+}
+
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem('kitchenAlertSettings');
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    saved.forEach(s=>{
+      const a = ALERTS.find(x=>x.label===s.label);
+      if(a){
+        if(s.mode==='timed'||s.mode==='unlimited') a.mode=s.mode;
+        if(typeof s.seconds==='number' && s.seconds>=5) a.seconds=s.seconds;
+      }
+    });
+  }catch(e){}
+}
+
 function openLog(){
   switchLogTab('activity');
   renderLog();
@@ -853,6 +957,7 @@ document.addEventListener('fullscreenchange',()=>{
   });
 });
 
+loadSettings();
 buildMainGrid();
 buildHoldGrid();
 updateUI();
