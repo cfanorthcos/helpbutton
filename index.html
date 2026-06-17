@@ -86,6 +86,54 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 }
 .alert-card-dismiss:hover,.alert-card-repeat:hover { background:rgba(255,255,255,0.28); }
 .alert-card-dismiss:active,.alert-card-repeat:active { transform:scale(.96); }
+.hold-card-tag { font-size:0.72rem; font-weight:800; letter-spacing:.06em; opacity:.85; margin-bottom:6px; }
+
+/* Hold card distinct styling */
+.hold-card {
+  border:4px solid rgba(255,255,255,0.55);
+  box-shadow:0 0 0 3px rgba(26,58,92,0.3), 0 8px 24px rgba(26,58,92,0.45) !important;
+  position:relative;
+  background-image:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255,255,255,0.08) 0px,
+      rgba(255,255,255,0.08) 12px,
+      transparent 12px,
+      transparent 26px
+    );
+  animation: cardEntrance .35s cubic-bezier(.34,1.56,.64,1) both, holdGlow 2.2s ease-in-out infinite !important;
+}
+.hold-card::before {
+  content:'';
+  position:absolute; inset:0;
+  border-radius:18px;
+  background-image: radial-gradient(rgba(255,255,255,0.18) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+  pointer-events:none;
+}
+.hold-card > * { position:relative; z-index:1; }
+.hold-card.urgent-flash {
+  animation: cardPulse .6s ease-in-out infinite, holdGlowUrgent 0.6s ease-in-out infinite !important;
+}
+@keyframes holdGlow {
+  0%,100% { box-shadow:0 0 0 3px rgba(26,58,92,0.3), 0 8px 24px rgba(26,58,92,0.45); }
+  50%     { box-shadow:0 0 0 6px rgba(26,58,92,0.45), 0 10px 32px rgba(26,58,92,0.6); }
+}
+@keyframes holdGlowUrgent {
+  0%,100% { box-shadow:0 0 0 4px rgba(211,47,47,0.45), 0 8px 26px rgba(211,47,47,0.5); }
+  50%     { box-shadow:0 0 0 8px rgba(211,47,47,0.6),  0 12px 36px rgba(211,47,47,0.65); }
+}
+.hold-card-badge {
+  position:absolute; top:-14px; right:-14px;
+  width:42px; height:42px; border-radius:50%;
+  background:white; display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem; box-shadow:0 3px 10px rgba(0,0,0,0.25);
+  animation: badgeBounce 1.6s ease-in-out infinite;
+}
+@keyframes badgeBounce {
+  0%,100% { transform:scale(1) rotate(0deg); }
+  50%     { transform:scale(1.12) rotate(-6deg); }
+}
 
 /* ── Alert buttons (bottom row) ── */
 .button-grid {
@@ -147,7 +195,7 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 .modal-sheet { background:white; border-radius:24px 24px 0 0; padding:22px; width:100%; max-width:560px; box-shadow:0 -8px 30px rgba(0,0,0,0.2); animation:panelIn .3s cubic-bezier(.4,0,.2,1) both; }
 .modal-title { font-size:1.05rem; font-weight:700; color:#333; margin-bottom:14px; }
 .hold-quick-btns { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
-.hold-quick-btn { border:none; border-radius:12px; background:#f4f6f8; color:#333; font-size:0.9rem; font-weight:700; padding:12px 4px; cursor:pointer; transition:background .15s,transform .15s; }
+.hold-quick-btn { border:none; border-radius:12px; background:#f4f6f8; color:#333; font-size:0.9rem; font-weight:700; padding:10px 4px; cursor:pointer; transition:background .15s,transform .15s; line-height:1.3; }
 .hold-quick-btn:hover { background:#e8eaed; }
 .hold-quick-btn:active { transform:scale(.95); }
 .hold-quick-btn.selected { background:#1a1a2e; color:white; }
@@ -187,6 +235,43 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 .log-label { font-size:0.9rem; font-weight:700; color:#333; flex:1; }
 .log-time { font-size:0.76rem; color:#999; white-space:nowrap; }
 .log-action { font-size:0.72rem; color:#bbb; white-space:nowrap; }
+
+/* ── Log tabs ── */
+.log-tabs { display:flex; gap:0; border-bottom:1px solid #e0e0e0; flex-shrink:0; padding:0 12px; }
+.log-tab {
+  flex:1; padding:11px 0; background:none; border:none; cursor:pointer;
+  font-size:0.88rem; font-weight:700; color:#999;
+  border-bottom:3px solid transparent; transition:color .2s, border-color .2s;
+}
+.log-tab.active { color:#1a1a2e; border-bottom-color:#1a1a2e; }
+
+/* ── Summary view ── */
+.summary-view { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px; }
+.summary-filters { display:flex; gap:8px; flex-wrap:wrap; }
+.summary-filter-btn {
+  border:1.5px solid #e0e0e0; background:white; color:#555;
+  font-size:0.82rem; font-weight:700; padding:7px 14px; border-radius:18px; cursor:pointer;
+  transition:background .2s, border-color .2s;
+}
+.summary-filter-btn.active { background:#1a1a2e; color:white; border-color:#1a1a2e; }
+.summary-filter-btn:hover:not(.active) { background:#f0f0f0; }
+
+.summary-stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
+.summary-stat-card {
+  background:#f8f8f8; border-radius:16px; padding:14px; text-align:center;
+}
+.summary-stat-value { font-size:1.8rem; font-weight:900; color:#1a1a2e; }
+.summary-stat-label { font-size:0.76rem; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.04em; margin-top:2px; }
+
+.summary-section-title { font-size:0.78rem; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.06em; }
+
+.summary-bar-row { display:flex; align-items:center; gap:10px; }
+.summary-bar-label { font-size:0.85rem; font-weight:700; color:#444; width:170px; flex-shrink:0; }
+.summary-bar-track { flex:1; height:18px; background:#eee; border-radius:9px; overflow:hidden; }
+.summary-bar-fill { height:100%; border-radius:9px; transition:width .4s ease; }
+.summary-bar-count { font-size:0.82rem; font-weight:700; color:#777; width:30px; text-align:right; flex-shrink:0; }
+
+.summary-empty { color:#aaa; font-size:0.92rem; text-align:center; margin-top:40px; }
 </style>
 </head>
 <body>
@@ -266,13 +351,18 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 <!-- Log panel -->
 <div id="logPanel" class="log-panel">
   <div class="log-header">
-    <div class="log-header-title">Alert History</div>
+    <div class="log-header-title">Activity & Reports</div>
     <div style="display:flex;gap:8px;align-items:center">
       <button class="log-clear-btn" onclick="clearLog()">Clear log</button>
       <button class="log-close-btn" onclick="closeLog()">Done</button>
     </div>
   </div>
+  <div class="log-tabs">
+    <button class="log-tab active" id="tabActivity" onclick="switchLogTab('activity')">📋 Activity</button>
+    <button class="log-tab" id="tabSummary" onclick="switchLogTab('summary')">📊 Summary</button>
+  </div>
   <div class="log-list" id="logList"></div>
+  <div class="summary-view" id="summaryView" style="display:none"></div>
 </div>
 
 <script>
@@ -383,9 +473,11 @@ function syncButtonStates(){
 
 function updateUI(){
   const hasAlerts=activeAlerts.size>0;
-  document.getElementById('emptyState').style.display=hasAlerts?'none':'';
-  document.getElementById('alertCardsRow').style.display=hasAlerts?'flex':'none';
-  document.getElementById('mainGrid').classList.toggle('expanded', !hasAlerts);
+  const hasHolds=holdTimers.size>0;
+  const hasAny=hasAlerts||hasHolds;
+  document.getElementById('emptyState').style.display=hasAny?'none':'';
+  document.getElementById('alertCardsRow').style.display=hasAny?'flex':'none';
+  document.getElementById('mainGrid').classList.toggle('expanded', !hasAny);
   const cb=document.getElementById('clearAllBtn');
   cb.classList.toggle('visible',hasAlerts);
 }
@@ -394,33 +486,80 @@ function renderCards(){
   const row=document.getElementById('alertCardsRow');
   row.innerHTML='';
   let delay=0;
+
+  // Build a combined list so we can sort by urgency (soonest-expiring first)
+  const items = [];
   activeAlerts.forEach((entry,label)=>{
-    const card=document.createElement('div');
-    card.className='alert-card';
-    card.style.background=entry.color; card.style.color=entry.isDark?'black':'white';
-    card.style.animationDelay=delay+'s'; delay+=.06;
-    if(entry.seconds!==null&&entry.seconds<=5)card.classList.add('urgent-flash');
-    entry.cardEl=card;
+    // null seconds (unlimited/dismiss-only) sorts last since it never expires
+    const sortVal = entry.seconds===null ? Infinity : entry.seconds;
+    items.push({ type:'alert', label, entry, sortVal });
+  });
+  holdTimers.forEach((entry,label)=>{
+    items.push({ type:'hold', label, entry, sortVal: entry.seconds });
+  });
+  items.sort((a,b)=>a.sortVal-b.sortVal);
 
-    const lbl=document.createElement('div'); lbl.className='alert-card-label'; lbl.textContent=label;
+  items.forEach(item=>{
+    if(item.type==='alert'){
+      const { label, entry } = item;
+      const card=document.createElement('div');
+      card.className='alert-card';
+      card.style.background=entry.color; card.style.color=entry.isDark?'black':'white';
+      card.style.animationDelay=delay+'s'; delay+=.06;
+      if(entry.seconds!==null&&entry.seconds<=5)card.classList.add('urgent-flash');
+      entry.cardEl=card;
 
-    const cd=document.createElement('div');
-    cd.className='alert-card-countdown'+(entry.seconds!==null&&entry.seconds<=5?' urgent':'');
-    cd.textContent=entry.seconds!==null?`Clearing in ${entry.seconds}s`:'Dismiss when ready';
-    entry.countdownEl=cd;
+      const lbl=document.createElement('div'); lbl.className='alert-card-label'; lbl.textContent=label;
 
-    const acts=document.createElement('div'); acts.className='card-actions';
-    if(entry.totalSeconds!==null){
-      const rb=document.createElement('button'); rb.className='alert-card-repeat'; rb.textContent='🔁 Reset';
-      if(entry.isDark){rb.style.borderColor='rgba(0,0,0,0.3)';rb.style.background='rgba(0,0,0,0.1)';rb.style.color='black';}
-      rb.onclick=()=>repeatAlert(label); acts.appendChild(rb);
+      const cd=document.createElement('div');
+      cd.className='alert-card-countdown'+(entry.seconds!==null&&entry.seconds<=5?' urgent':'');
+      cd.textContent=entry.seconds!==null?`Clearing in ${entry.seconds}s`:'Dismiss when ready';
+      entry.countdownEl=cd;
+
+      const acts=document.createElement('div'); acts.className='card-actions';
+      if(entry.totalSeconds!==null){
+        const rb=document.createElement('button'); rb.className='alert-card-repeat'; rb.textContent='🔁 Reset';
+        if(entry.isDark){rb.style.borderColor='rgba(0,0,0,0.3)';rb.style.background='rgba(0,0,0,0.1)';rb.style.color='black';}
+        rb.onclick=()=>repeatAlert(label); acts.appendChild(rb);
+      }
+      const db=document.createElement('button'); db.className='alert-card-dismiss'; db.textContent='Dismiss';
+      if(entry.isDark){db.style.borderColor='rgba(0,0,0,0.3)';db.style.background='rgba(0,0,0,0.1)';db.style.color='black';}
+      db.onclick=()=>animateDismiss(label,card); acts.appendChild(db);
+
+      card.appendChild(lbl); card.appendChild(cd); card.appendChild(acts);
+      row.appendChild(card);
+
+    } else {
+      const { label, entry } = item;
+      const card=document.createElement('div');
+      card.className='alert-card hold-card';
+      card.style.background='#1a3a5c'; card.style.color='white';
+      card.style.animationDelay=delay+'s'; delay+=.06;
+      if(entry.seconds<=30) card.classList.add('urgent-flash');
+      entry.cardEl=card;
+
+      const badge=document.createElement('div'); badge.className='hold-card-badge'; badge.textContent='🫳';
+      card.appendChild(badge);
+
+      const tag=document.createElement('div'); tag.className='hold-card-tag'; tag.textContent='🫳 HOLDING';
+
+      const lbl=document.createElement('div'); lbl.className='alert-card-label'; lbl.style.fontSize='clamp(1rem,3vw,2.6rem)'; lbl.textContent=label;
+
+      const cd=document.createElement('div');
+      cd.className='alert-card-countdown'+(entry.seconds<=30?' urgent':'');
+      cd.textContent=formatHoldTime(entry.seconds);
+      entry.cardCountdownEl=cd;
+
+      const acts=document.createElement('div'); acts.className='card-actions';
+      const editBtn=document.createElement('button'); editBtn.className='alert-card-repeat'; editBtn.textContent='⏱ Edit';
+      editBtn.onclick=()=>{ const prod=HOLD_PRODUCTS.find(p=>p.label===label); openHoldTimeModal(label, prod.mac); };
+      const cancelBtn=document.createElement('button'); cancelBtn.className='alert-card-dismiss'; cancelBtn.textContent='Cancel Hold';
+      cancelBtn.onclick=()=>cancelHold(label);
+      acts.appendChild(editBtn); acts.appendChild(cancelBtn);
+
+      card.appendChild(tag); card.appendChild(lbl); card.appendChild(cd); card.appendChild(acts);
+      row.appendChild(card);
     }
-    const db=document.createElement('button'); db.className='alert-card-dismiss'; db.textContent='Dismiss';
-    if(entry.isDark){db.style.borderColor='rgba(0,0,0,0.3)';db.style.background='rgba(0,0,0,0.1)';db.style.color='black';}
-    db.onclick=()=>animateDismiss(label,card); acts.appendChild(db);
-
-    card.appendChild(lbl); card.appendChild(cd); card.appendChild(acts);
-    row.appendChild(card);
   });
 }
 
@@ -465,7 +604,9 @@ function openHoldTimeModal(label,isMac){
   if(!isMac){
     const c=document.getElementById('holdQuickBtns'); c.innerHTML='';
     QUICK_TIMES.forEach(sec=>{
-      const b=document.createElement('button'); b.className='hold-quick-btn'; b.textContent=(sec/60)+'m';
+      const b=document.createElement('button'); b.className='hold-quick-btn';
+      const mins=sec/60;
+      b.innerHTML = mins===5 ? `${mins}m<br><span style="font-size:0.65em;opacity:.7;font-weight:600;">Full Time</span>` : `${mins}m`;
       if(holdTimers.has(label)&&holdTimers.get(label).totalSeconds===sec){b.classList.add('selected');selectedQuick=sec;}
       b.onclick=()=>{c.querySelectorAll('.hold-quick-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');selectedQuick=sec;};
       c.appendChild(b);
@@ -494,7 +635,7 @@ function startHold(){
   if(holdTimers.has(holdTarget))clearInterval(holdTimers.get(holdTarget).intervalId);
   const key=holdTarget.replace(/[\s&]/g,'_');
   const timerEl=document.getElementById(`holdTimer_${key}`);
-  const entry={seconds,totalSeconds:seconds,intervalId:null,timerEl,btnEl:timerEl?.closest('.hold-btn')};
+  const entry={seconds,totalSeconds:seconds,intervalId:null,timerEl,btnEl:timerEl?.closest('.hold-btn'),cardEl:null,cardCountdownEl:null};
   holdTimers.set(holdTarget,entry);
   addLog(holdTarget,'#e8600a','hold started');
   if(entry.btnEl)entry.btnEl.classList.add('holding');
@@ -503,9 +644,14 @@ function startHold(){
   entry.intervalId=setInterval(()=>{
     entry.seconds--;
     if(entry.timerEl){entry.timerEl.textContent=formatHoldTime(entry.seconds);if(entry.seconds<=30)entry.timerEl.classList.add('urgent');}
+    if(entry.cardCountdownEl){
+      entry.cardCountdownEl.textContent=formatHoldTime(entry.seconds);
+      if(entry.seconds<=30){entry.cardCountdownEl.classList.add('urgent'); if(entry.cardEl) entry.cardEl.classList.add('urgent-flash');}
+    }
     if(entry.seconds<=0){clearInterval(entry.intervalId);expireHold(cl);}
   },1000);
   closeHoldTimeModal();
+  renderCards(); updateUI();
 }
 
 function cancelHold(label){
@@ -516,6 +662,7 @@ function cancelHold(label){
   const tel=document.getElementById(`holdTimer_${k}`);
   const bel=tel?.closest('.hold-btn');
   if(bel)bel.classList.remove('holding'); if(tel){tel.textContent='';tel.classList.remove('urgent');}
+  renderCards(); updateUI();
 }
 
 function expireHold(label){
@@ -526,6 +673,7 @@ function expireHold(label){
   const tel=document.getElementById(`holdTimer_${k}`);
   const bel=tel?.closest('.hold-btn');
   if(bel)bel.classList.remove('holding'); if(tel){tel.textContent='';tel.classList.remove('urgent');}
+  renderCards(); updateUI();
 }
 
 function formatHoldTime(s){
@@ -537,10 +685,11 @@ function formatHoldTime(s){
 const SHEET_URL = 'https://script.google.com/a/macros/cfanorthcos.com/s/AKfycbwL4WiC7yag1xOBPsQPNpPxII8STYcAUQnAtb0MI1bmcORe5Yp4LWDlAPADhS6xvWBd9w/exec';
 
 function addLog(label, color, action){
-  const time = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const timestamp = new Date().toLocaleString();
-  alertLog.unshift({label,color,action,time});
-  if(alertLog.length>80) alertLog.pop();
+  const now = new Date();
+  const time = now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const timestamp = now.toLocaleString();
+  alertLog.unshift({label,color,action,time,date:now});
+  if(alertLog.length>500) alertLog.pop();
 
   // Send to Google Sheet
   fetch(SHEET_URL, {
@@ -550,9 +699,13 @@ function addLog(label, color, action){
     body: JSON.stringify({ timestamp, label, action })
   }).catch(()=>{});
 }
-function openLog(){renderLog();const p=document.getElementById('logPanel');p.classList.remove('hide');p.classList.add('show');}
+function openLog(){
+  switchLogTab('activity');
+  renderLog();
+  const p=document.getElementById('logPanel');p.classList.remove('hide');p.classList.add('show');
+}
 function closeLog(){const p=document.getElementById('logPanel');p.classList.add('hide');p.addEventListener('animationend',()=>p.classList.remove('show','hide'),{once:true});}
-function clearLog(){alertLog=[];renderLog();}
+function clearLog(){alertLog=[];renderLog();renderSummary();}
 function renderLog(){
   const list=document.getElementById('logList');
   if(!alertLog.length){list.innerHTML='<div class="log-empty">No activity this session yet.</div>';return;}
@@ -563,6 +716,121 @@ function renderLog(){
     el.innerHTML=`<div class="log-dot" style="background:${e.color}"></div><div class="log-label">${e.label}</div><div class="log-action">${icons[e.action]||''} ${e.action}</div><div class="log-time">${e.time}</div>`;
     list.appendChild(el);
   });
+}
+
+// ── Tabs ──
+let summaryFilter = 'today'; // today | hour | all
+
+function switchLogTab(tab){
+  document.getElementById('tabActivity').classList.toggle('active', tab==='activity');
+  document.getElementById('tabSummary').classList.toggle('active', tab==='summary');
+  document.getElementById('logList').style.display = tab==='activity' ? '' : 'none';
+  document.getElementById('summaryView').style.display = tab==='summary' ? '' : 'none';
+  if(tab==='summary') renderSummary();
+}
+
+function setSummaryFilter(f){
+  summaryFilter = f;
+  renderSummary();
+}
+
+function getFilteredLog(){
+  const now = new Date();
+  if(summaryFilter==='hour'){
+    const cutoff = new Date(now.getTime() - 60*60*1000);
+    return alertLog.filter(e=>e.date >= cutoff);
+  }
+  if(summaryFilter==='today'){
+    return alertLog.filter(e=>e.date.toDateString()===now.toDateString());
+  }
+  return alertLog; // all (this session)
+}
+
+function renderSummary(){
+  const view = document.getElementById('summaryView');
+  const data = getFilteredLog();
+
+  const filterBar = `
+    <div class="summary-filters">
+      <button class="summary-filter-btn ${summaryFilter==='hour'?'active':''}" onclick="setSummaryFilter('hour')">Last Hour</button>
+      <button class="summary-filter-btn ${summaryFilter==='today'?'active':''}" onclick="setSummaryFilter('today')">Today</button>
+      <button class="summary-filter-btn ${summaryFilter==='all'?'active':''}" onclick="setSummaryFilter('all')">This Session</button>
+    </div>`;
+
+  if(!data.length){
+    view.innerHTML = filterBar + '<div class="summary-empty">No activity in this range.</div>';
+    return;
+  }
+
+  const triggeredAlerts = data.filter(e=>e.action==='triggered');
+  const autoCleared     = data.filter(e=>e.action==='auto-cleared');
+  const holdsStarted    = data.filter(e=>e.action==='hold started');
+  const holdsExpired    = data.filter(e=>e.action==='hold expired');
+
+  // Count by label for alerts
+  const alertCounts = {};
+  triggeredAlerts.forEach(e=>{ alertCounts[e.label]=(alertCounts[e.label]||0)+1; });
+  const sortedAlerts = Object.entries(alertCounts).sort((a,b)=>b[1]-a[1]);
+  const maxAlertCount = sortedAlerts.length ? sortedAlerts[0][1] : 1;
+
+  // Count by label for holds
+  const holdCounts = {};
+  holdsStarted.forEach(e=>{ holdCounts[e.label]=(holdCounts[e.label]||0)+1; });
+  const sortedHolds = Object.entries(holdCounts).sort((a,b)=>b[1]-a[1]);
+  const maxHoldCount = sortedHolds.length ? sortedHolds[0][1] : 1;
+
+  const colorMap = {};
+  data.forEach(e=>{ colorMap[e.label]=e.color; });
+
+  let html = filterBar;
+
+  html += `
+    <div class="summary-stats-grid">
+      <div class="summary-stat-card"><div class="summary-stat-value">${triggeredAlerts.length}</div><div class="summary-stat-label">Alerts Fired</div></div>
+      <div class="summary-stat-card"><div class="summary-stat-value">${autoCleared.length}</div><div class="summary-stat-label">Auto-Cleared</div></div>
+      <div class="summary-stat-card"><div class="summary-stat-value">${holdsStarted.length}</div><div class="summary-stat-label">Holds Started</div></div>
+      <div class="summary-stat-card"><div class="summary-stat-value">${holdsExpired.length}</div><div class="summary-stat-label">Holds Expired</div></div>
+    </div>`;
+
+  if(sortedAlerts.length){
+    html += `<div class="summary-section-title">Most Triggered Alerts</div>`;
+    sortedAlerts.forEach(([label,count])=>{
+      const pct = Math.round((count/maxAlertCount)*100);
+      html += `
+        <div class="summary-bar-row">
+          <div class="summary-bar-label">${label}</div>
+          <div class="summary-bar-track"><div class="summary-bar-fill" style="width:${pct}%;background:${colorMap[label]||'#1a1a2e'}"></div></div>
+          <div class="summary-bar-count">${count}</div>
+        </div>`;
+    });
+  }
+
+  if(sortedHolds.length){
+    html += `<div class="summary-section-title">Most Held Products</div>`;
+    sortedHolds.forEach(([label,count])=>{
+      const pct = Math.round((count/maxHoldCount)*100);
+      html += `
+        <div class="summary-bar-row">
+          <div class="summary-bar-label">${label}</div>
+          <div class="summary-bar-track"><div class="summary-bar-fill" style="width:${pct}%;background:#1a3a5c"></div></div>
+          <div class="summary-bar-count">${count}</div>
+        </div>`;
+    });
+  }
+
+  if(holdsExpired.length > 0){
+    html += `<div class="summary-section-title">⚠️ Holds That Expired Unattended</div>`;
+    holdsExpired.forEach(e=>{
+      html += `
+        <div class="log-entry">
+          <div class="log-dot" style="background:#d32f2f"></div>
+          <div class="log-label">${e.label}</div>
+          <div class="log-time">${e.time}</div>
+        </div>`;
+    });
+  }
+
+  view.innerHTML = html;
 }
 
 // ── Fullscreen ──
