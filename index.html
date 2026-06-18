@@ -512,7 +512,7 @@ function updateUI(){
   document.getElementById('alertCardsRow').style.display=hasAny?'flex':'none';
   document.getElementById('mainGrid').classList.toggle('expanded', !hasAny);
   const cb=document.getElementById('clearAllBtn');
-  cb.classList.toggle('visible',hasAlerts);
+  cb.classList.toggle('visible',hasAny);
 }
 
 function renderCards(){
@@ -612,7 +612,20 @@ function dismissAlert(label){
 
 function clearAll(){
   activeAlerts.forEach((e,l)=>{clearInterval(e.intervalId);addLog(l,e.color,'dismissed');});
-  activeAlerts.clear(); syncButtonStates(); renderCards(); updateUI();
+  activeAlerts.clear();
+
+  holdTimers.forEach((e,label)=>{
+    clearInterval(e.intervalId);
+    addLog(label,'#1a3a5c','hold cancelled');
+    const k=label.replace(/[\s&]/g,'_');
+    const tel=document.getElementById(`holdTimer_${k}`);
+    const bel=tel?.closest('.hold-btn');
+    if(bel)bel.classList.remove('holding');
+    if(tel){tel.textContent='';tel.classList.remove('urgent');}
+  });
+  holdTimers.clear();
+
+  syncButtonStates(); renderCards(); updateUI();
 }
 
 // ── Hold timers ──
@@ -764,7 +777,7 @@ function renderSettings(){
     bTimed.onclick=()=>{ a.mode='timed'; saveSettings(); renderSettings(); };
     bUnlim.onclick=()=>{ a.mode='unlimited'; saveSettings(); renderSettings(); };
 
-    toggle.appendChild(bTimed); toggle.appendChild(bUnlim);
+    toggle.appendChild(bUnlim); toggle.appendChild(bTimed);
     topLine.appendChild(nameWrap); topLine.appendChild(toggle);
     row.appendChild(topLine);
 
