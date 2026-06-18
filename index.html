@@ -58,9 +58,10 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   gap:10px; border:2px dashed #ddd; border-radius:22px;
   animation:emptyFadeIn .4s ease both;
 }
-.empty-state-icon { font-size:2.4rem; opacity:.35; }
-.empty-state-text { font-size:1rem; font-weight:600; color:#bbb; }
-.empty-state-sub { font-size:0.82rem; color:#ccc; font-weight:500; }
+.empty-state-icon { font-size:2.4rem; opacity:.35; transition:opacity .35s ease; }
+.empty-state-text { font-size:1rem; font-weight:600; color:#bbb; transition:opacity .35s ease; }
+.empty-state-sub { font-size:0.82rem; color:#ccc; font-weight:500; transition:opacity .35s ease; }
+.empty-state-icon.fading, .empty-state-text.fading, .empty-state-sub.fading { opacity:0 !important; }
 
 /* Alert cards row — side by side like original overlay */
 .alert-cards-row { display:flex; flex-direction:row; gap:10px; flex:1; min-height:0; }
@@ -373,9 +374,9 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   <!-- Cards area: empty state or active cards -->
   <div class="cards-area" id="cardsArea">
     <div class="empty-state" id="emptyState">
-      <div class="empty-state-icon">🍽️</div>
-      <div class="empty-state-text">No Active Alerts</div>
-      <div class="empty-state-sub">Tap a button below to send an alert</div>
+      <div class="empty-state-icon" id="emptyStateIcon">🍽️</div>
+      <div class="empty-state-text" id="emptyStateText">No Active Alerts</div>
+      <div class="empty-state-sub" id="emptyStateSub">Tap a button below to send an alert</div>
     </div>
     <div class="alert-cards-row" id="alertCardsRow" style="display:none"></div>
   </div>
@@ -579,6 +580,8 @@ function updateUI(){
   document.getElementById('mainGrid').classList.toggle('expanded', !hasAny);
   const cb=document.getElementById('clearAllBtn');
   cb.classList.toggle('visible',hasAny);
+
+  if(hasAny) stopIdleTips(); else startIdleTips();
 }
 
 function renderCards(){
@@ -1186,6 +1189,52 @@ document.addEventListener('fullscreenchange',()=>{
     if(e.target===document.getElementById(id))document.getElementById(id).classList.remove('show');
   });
 });
+
+// ── Idle "splash text" tips, Minecraft-menu style but CFA-flavored ──
+const IDLE_TIPS = [
+  { icon:'🍗', text:'All Clear!',            sub:'Tap a button below to send an alert.' },
+  { icon:'🐄', text:'Eat Mor Chikin',         sub:'The cows say hi. No active alerts right now.' },
+  { icon:'🧊', text:'Smooth Sailing',         sub:'Kitchen\'s running clean — nothing needs your attention.' },
+  { icon:'🥤', text:'Refill the Lemonade',    sub:'While things are calm, maybe top off the dispensers?' },
+  { icon:'🍟', text:'Crispy & Quiet',         sub:'No alerts firing. Fries are presumably doing great.' },
+  { icon:'🐔', text:'Closed on Sundays',      sub:'But open right now, and all clear in the kitchen.' },
+  { icon:'✨', text:'Looking Good!',          sub:'No active alerts. Great job keeping it tight.' },
+  { icon:'🧽', text:'Quick Clean Check',      sub:'Slow moment? Good time to wipe down a station.' },
+  { icon:'🥗', text:'Fresh & Ready',          sub:'All stations quiet. Tap a button to flag something.' },
+];
+
+let idleTipInterval = null;
+let idleTipIndex = Math.floor(Math.random()*IDLE_TIPS.length);
+
+function showIdleTip(index){
+  const icon=document.getElementById('emptyStateIcon');
+  const text=document.getElementById('emptyStateText');
+  const sub=document.getElementById('emptyStateSub');
+  if(!icon) return;
+  const tip = IDLE_TIPS[index];
+
+  [icon,text,sub].forEach(el=>el.classList.add('fading'));
+  setTimeout(()=>{
+    icon.textContent = tip.icon;
+    text.textContent = tip.text;
+    sub.textContent  = tip.sub;
+    [icon,text,sub].forEach(el=>el.classList.remove('fading'));
+  }, 350);
+}
+
+function startIdleTips(){
+  if(idleTipInterval) return;
+  showIdleTip(idleTipIndex);
+  idleTipInterval = setInterval(()=>{
+    idleTipIndex = (idleTipIndex+1) % IDLE_TIPS.length;
+    showIdleTip(idleTipIndex);
+  }, 13000);
+}
+
+function stopIdleTips(){
+  clearInterval(idleTipInterval);
+  idleTipInterval = null;
+}
 
 loadSettings();
 buildMainGrid();
