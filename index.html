@@ -386,6 +386,46 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 }
 .settings-add-btn:hover { background:#234b78; }
 .settings-add-btn:active { transform:scale(.97); }
+
+/* ── Outdoor rotation section ── */
+.outdoor-section { flex-shrink:0; animation:fadeUp .4s ease .35s both; }
+.outdoor-title { display:flex; align-items:center; gap:8px; }
+.outdoor-temp-badge {
+  font-size:0.72rem; font-weight:700; background:#e8f4fd; color:#1565c0;
+  border-radius:10px; padding:2px 8px; display:none;
+}
+.outdoor-temp-badge.visible { display:inline-block; }
+.outdoor-empty {
+  font-size:0.78rem; color:#ccc; font-weight:500; font-style:italic;
+  padding:6px 4px;
+}
+.outdoor-grid { display:flex; flex-wrap:wrap; gap:8px; min-height:24px; }
+.outdoor-card {
+  background:white; border:1.5px solid #b3d4f0; border-radius:14px;
+  padding:9px 12px; display:flex; align-items:center; gap:10px;
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+  transition:box-shadow .2s;
+  min-width:160px;
+}
+.outdoor-card.urgent {
+  border-color:#e53935; background:#fff5f5;
+  animation:holdPulse 1s ease-in-out infinite;
+}
+.outdoor-card-icon { font-size:1.2rem; flex-shrink:0; }
+.outdoor-card-info { flex:1; min-width:0; }
+.outdoor-card-name { font-size:0.88rem; font-weight:700; color:#1a3a5c; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.outdoor-card.urgent .outdoor-card-name { color:#c00; }
+.outdoor-card-timer { font-size:0.78rem; font-weight:700; color:#1565c0; }
+.outdoor-card.urgent .outdoor-card-timer { color:#e53935; }
+.outdoor-card-remove {
+  background:none; border:none; color:#bbb; font-size:0.85rem; cursor:pointer;
+  padding:2px 4px; border-radius:6px; transition:color .15s, background .15s; flex-shrink:0;
+}
+.outdoor-card-remove:hover { color:#e53935; background:#fff0f0; }
+.outdoor-modal-temp {
+  font-size:0.9rem; font-weight:600; color:#1565c0; background:#e8f4fd;
+  border-radius:10px; padding:8px 12px; margin-bottom:14px; display:none;
+}
 </style>
 </head>
 <body>
@@ -428,6 +468,20 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
     <div class="hold-grid" id="holdGrid"></div>
   </div>
 
+  <!-- Outdoor rotation section -->
+  <div class="outdoor-section" id="outdoorSection">
+    <div class="hold-section-header">
+      <div class="hold-section-title outdoor-title">
+        🌡️ Outside Rotation
+        <span class="outdoor-temp-badge" id="outdoorTempBadge"></span>
+      </div>
+      <button class="hold-add-btn" onclick="openOutdoorModal()">+ Add</button>
+    </div>
+    <div class="outdoor-grid" id="outdoorGrid">
+      <div class="outdoor-empty" id="outdoorEmpty">No one outside right now</div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Hold time modal -->
@@ -468,10 +522,35 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   </div>
   <div class="log-tabs">
     <button class="log-tab active" id="settingsTabAlerts" onclick="switchSettingsTab('alerts')">‼️ Alerts</button>
-    <button class="log-tab" id="settingsTabHolds" onclick="switchSettingsTab('holds')">🫳 Hold Products</button>
+    <button class="log-tab" id="settingsTabHolds" onclick="switchSettingsTab('holds')">🫳 Holding</button>
+    <button class="log-tab" id="settingsTabDrops" onclick="switchSettingsTab('drops')">⏰ Drops</button>
+    <button class="log-tab" id="settingsTabOutdoor" onclick="switchSettingsTab('outdoor')">🌡️ Outdoor</button>
   </div>
   <div class="settings-body">
     <div id="settingsAlertList" class="settings-alert-list"></div>
+  </div>
+</div>
+
+<!-- Outdoor add modal -->
+<div class="modal-backdrop" id="outdoorModal">
+  <div class="modal-sheet">
+    <div class="modal-title" id="outdoorModalTitle">Add Team Member Outside</div>
+    <div class="outdoor-modal-temp" id="outdoorModalTemp"></div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:0.85rem;font-weight:700;color:#777;display:block;margin-bottom:6px;">Team member name</label>
+      <input class="settings-text-input" type="text" id="outdoorNameInput" placeholder="e.g. Alex">
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:0.85rem;font-weight:700;color:#777;display:block;margin-bottom:6px;">Rotation length</label>
+      <div class="settings-mode-toggle" style="width:100%;">
+        <button class="settings-mode-btn active" id="outdoorBtn20" onclick="selectOutdoorDuration(20)">20 min (0–25°)</button>
+        <button class="settings-mode-btn" id="outdoorBtn30" onclick="selectOutdoorDuration(30)">30 min (25–40°)</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeOutdoorModal()">Cancel</button>
+      <button class="modal-btn-primary" onclick="startOutdoorRotation()">Start Rotation</button>
+    </div>
   </div>
 </div>
 
@@ -863,7 +942,7 @@ function addLog(label, color, action){
   }).catch(()=>{});
 }
 // ── Settings ──
-let settingsTab = 'alerts'; // alerts | holds
+let settingsTab = 'alerts';
 
 function openSettings(){
   settingsTab='alerts';
@@ -882,11 +961,14 @@ function switchSettingsTab(tab){
 const PRESET_COLORS = ['#FFC107','#FF6F00','#E53935','#8E24AA','#6D4C41','#2E7D32','#212121','#00838F','#1565C0','#AD1457','#558B2F','#5D4037'];
 
 function renderSettings(){
-  document.getElementById('settingsTabAlerts').classList.toggle('active', settingsTab==='alerts');
-  document.getElementById('settingsTabHolds').classList.toggle('active', settingsTab==='holds');
-
+  ['alerts','holds','drops','outdoor'].forEach(t=>{
+    const el=document.getElementById(`settingsTab${t.charAt(0).toUpperCase()+t.slice(1)}`);
+    if(el) el.classList.toggle('active', settingsTab===t);
+  });
   if(settingsTab==='alerts') renderAlertSettings();
-  else renderHoldSettings();
+  else if(settingsTab==='holds') renderHoldSettings();
+  else if(settingsTab==='drops') renderDropSettings();
+  else if(settingsTab==='outdoor') renderOutdoorSettings();
 }
 
 function renderAlertSettings(){
@@ -1069,6 +1151,8 @@ function saveSettings(){
   try{
     localStorage.setItem('kitchenAlerts_v2', JSON.stringify(ALERTS));
     localStorage.setItem('kitchenHolds_v2', JSON.stringify(HOLD_PRODUCTS));
+    localStorage.setItem('kitchenZip', outdoorZip);
+    localStorage.setItem('kitchenRotationRules', JSON.stringify(rotationRules));
   }catch(e){}
 }
 
@@ -1078,8 +1162,286 @@ function loadSettings(){
     if(a){ const parsed=JSON.parse(a); if(Array.isArray(parsed) && parsed.length) ALERTS = parsed; }
     const h = localStorage.getItem('kitchenHolds_v2');
     if(h){ const parsed=JSON.parse(h); if(Array.isArray(parsed) && parsed.length) HOLD_PRODUCTS = parsed; }
+    const z = localStorage.getItem('kitchenZip');
+    if(z) outdoorZip = z;
+    const r = localStorage.getItem('kitchenRotationRules');
+    if(r){ const parsed=JSON.parse(r); if(Array.isArray(parsed) && parsed.length) rotationRules = parsed; }
   }catch(e){}
 }
+
+// ── Drop settings tab ──
+function renderDropSettings(){
+  const list=document.getElementById('settingsAlertList');
+  list.innerHTML='';
+
+  const hint=document.createElement('div'); hint.className='settings-hint';
+  hint.textContent='Time-sensitive drop alerts have a distinct look (dashed gold border, ⏰ badge). Toggle the flag below to mark any alert as a drop.';
+  list.appendChild(hint);
+
+  ALERTS.forEach((a,idx)=>{
+    const row=document.createElement('div'); row.className='settings-alert-row';
+    const topLine=document.createElement('div'); topLine.className='settings-alert-topline';
+
+    const nameWrap=document.createElement('div'); nameWrap.className='settings-alert-name';
+    const swatch=document.createElement('div'); swatch.className='settings-alert-swatch'; swatch.style.background=a.color;
+    const nameText=document.createElement('span'); nameText.textContent=a.label;
+    nameWrap.appendChild(swatch); nameWrap.appendChild(nameText);
+
+    const toggle=document.createElement('div'); toggle.className='settings-mode-toggle';
+    const bNorm=document.createElement('button'); bNorm.className='settings-mode-btn'+(!a.scheduledTime?' active':''); bNorm.textContent='Regular Alert';
+    const bDrop=document.createElement('button'); bDrop.className='settings-mode-btn'+(a.scheduledTime?' active':''); bDrop.textContent='⏰ Drop Alert';
+    bNorm.onclick=()=>{ delete a.scheduledTime; saveSettings(); buildMainGrid(); renderSettings(); };
+    bDrop.onclick=()=>{ a.scheduledTime='manual'; saveSettings(); buildMainGrid(); renderSettings(); };
+    toggle.appendChild(bNorm); toggle.appendChild(bDrop);
+
+    topLine.appendChild(nameWrap); topLine.appendChild(toggle);
+    row.appendChild(topLine);
+    list.appendChild(row);
+  });
+}
+
+// ── Outdoor rotation settings tab ──
+let outdoorZip = '';
+let currentTemp = null;
+let outdoorDuration = 30;
+
+// Rotation rules — array of { maxTemp, minutes, label }, sorted lowest maxTemp first
+let rotationRules = [
+  { maxTemp:25, minutes:20, label:'Very Cold' },
+  { maxTemp:40, minutes:30, label:'Cold' },
+];
+
+function renderOutdoorSettings(){
+  const list=document.getElementById('settingsAlertList');
+  list.innerHTML='';
+
+  const hint=document.createElement('div'); hint.className='settings-hint';
+  hint.textContent='Enter your zip code so the board can look up the current temperature and set rotation lengths automatically.';
+  list.appendChild(hint);
+
+  const row=document.createElement('div'); row.className='settings-alert-row'; row.style.flexDirection='column'; row.style.gap='10px';
+
+  const label=document.createElement('div'); label.className='settings-section-title'; label.textContent='Zip Code';
+  const inp=document.createElement('input'); inp.className='settings-text-input'; inp.type='text';
+  inp.placeholder='e.g. 80903'; inp.value=outdoorZip; inp.maxLength=5;
+  inp.oninput=()=>{ outdoorZip=inp.value.trim(); saveSettings(); };
+
+  const fetchBtn=document.createElement('button'); fetchBtn.className='settings-add-btn'; fetchBtn.textContent='Fetch Current Temperature';
+  fetchBtn.onclick=()=>{ fetchWeather(true); };
+
+  const tempDisplay=document.createElement('div'); tempDisplay.id='settingsTempDisplay';
+  tempDisplay.style.cssText='font-size:0.9rem;font-weight:600;color:#1565c0;padding:8px 12px;background:#e8f4fd;border-radius:10px;display:none;';
+  if(currentTemp!==null){
+    tempDisplay.textContent=`Current temp: ${currentTemp}°F — ${getRotationLabel(currentTemp)}`;
+    tempDisplay.style.display='block';
+  }
+
+  row.appendChild(label); row.appendChild(inp); row.appendChild(fetchBtn); row.appendChild(tempDisplay);
+  list.appendChild(row);
+
+  const rulesRow=document.createElement('div'); rulesRow.className='settings-alert-row'; rulesRow.style.flexDirection='column'; rulesRow.style.gap='10px';
+  const rulesTitle=document.createElement('div'); rulesTitle.className='settings-section-title'; rulesTitle.textContent='Rotation Rules';
+  const rulesHint=document.createElement('div'); rulesHint.style.cssText='font-size:0.82rem;color:#aaa;'; rulesHint.textContent='Rules apply when temp is at or below the threshold. Sorted coldest first.';
+  rulesRow.appendChild(rulesTitle); rulesRow.appendChild(rulesHint);
+
+  rotationRules.forEach((rule, idx)=>{
+    const ruleRow=document.createElement('div'); ruleRow.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
+
+    const tempLabel=document.createElement('span'); tempLabel.style.cssText='font-size:0.82rem;font-weight:700;color:#777;white-space:nowrap;'; tempLabel.textContent='Up to';
+    const tempInp=document.createElement('input'); tempInp.type='number'; tempInp.className='settings-seconds-input'; tempInp.style.width='62px';
+    tempInp.value=rule.maxTemp; tempInp.min='-99'; tempInp.max='200';
+    tempInp.oninput=()=>{ rule.maxTemp=parseInt(tempInp.value)||0; saveSettings(); };
+    const tempUnit=document.createElement('span'); tempUnit.style.cssText='font-size:0.82rem;color:#999;white-space:nowrap;'; tempUnit.textContent='°F →';
+
+    const minLabel=document.createElement('span'); minLabel.style.cssText='font-size:0.82rem;font-weight:700;color:#777;white-space:nowrap;'; minLabel.textContent='';
+    const minInp=document.createElement('input'); minInp.type='number'; minInp.className='settings-seconds-input'; minInp.style.width='62px';
+    minInp.value=rule.minutes; minInp.min='1'; minInp.max='120';
+    minInp.oninput=()=>{ rule.minutes=parseInt(minInp.value)||20; saveSettings(); };
+    const minUnit=document.createElement('span'); minUnit.style.cssText='font-size:0.82rem;color:#999;white-space:nowrap;'; minUnit.textContent='min rotation';
+
+    const delBtn=document.createElement('button'); delBtn.className='settings-delete-btn'; delBtn.textContent='🗑';
+    delBtn.onclick=()=>{ rotationRules.splice(idx,1); saveSettings(); renderSettings(); };
+
+    ruleRow.appendChild(tempLabel); ruleRow.appendChild(tempInp); ruleRow.appendChild(tempUnit);
+    ruleRow.appendChild(minInp); ruleRow.appendChild(minUnit); ruleRow.appendChild(delBtn);
+    rulesRow.appendChild(ruleRow);
+  });
+
+  const addRuleBtn=document.createElement('button'); addRuleBtn.className='settings-add-btn'; addRuleBtn.style.marginTop='4px'; addRuleBtn.textContent='+ Add Rule';
+  addRuleBtn.onclick=()=>{
+    rotationRules.push({ maxTemp:50, minutes:30, label:'Mild' });
+    rotationRules.sort((a,b)=>a.maxTemp-b.maxTemp);
+    saveSettings(); renderSettings();
+  };
+  rulesRow.appendChild(addRuleBtn);
+  list.appendChild(rulesRow);
+}
+
+function getRotationLabel(temp){
+  const sorted=[...rotationRules].sort((a,b)=>a.maxTemp-b.maxTemp);
+  for(const rule of sorted){
+    if(temp<=rule.maxTemp) return `${rule.minutes} min rotations (≤${rule.maxTemp}°F)`;
+  }
+  return `Above ${sorted[sorted.length-1]?.maxTemp||40}°F — rotations optional`;
+}
+
+function getRotationMinutes(temp){
+  if(temp===null) return rotationRules[rotationRules.length-1]?.minutes||30;
+  const sorted=[...rotationRules].sort((a,b)=>a.maxTemp-b.maxTemp);
+  for(const rule of sorted){
+    if(temp<=rule.maxTemp) return rule.minutes;
+  }
+  return sorted[sorted.length-1]?.minutes||30;
+}
+
+async function fetchWeather(showInSettings=false){
+  if(!outdoorZip || outdoorZip.length<5) return;
+  try{
+    const res = await fetch(`https://wttr.in/${outdoorZip}?format=j1`);
+    const data = await res.json();
+    const tempC = parseFloat(data.current_condition[0].temp_C);
+    currentTemp = Math.round(tempC * 9/5 + 32); // Convert to °F
+    outdoorDuration = getRotationMinutes(currentTemp);
+    updateOutdoorTempBadge();
+    if(showInSettings){
+      const d=document.getElementById('settingsTempDisplay');
+      if(d){ d.textContent=`Current temp: ${currentTemp}°F — ${getRotationLabel(currentTemp)}`; d.style.display='block'; }
+    }
+  }catch(e){}
+}
+
+function updateOutdoorTempBadge(){
+  const badge=document.getElementById('outdoorTempBadge');
+  if(!badge) return;
+  if(currentTemp!==null){
+    badge.textContent=`${currentTemp}°F`;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+// ── Outdoor modal ──
+let selectedOutdoorDuration = null;
+
+function openOutdoorModal(){
+  fetchWeather().then(()=>{
+    const dur = outdoorDuration;
+    selectedOutdoorDuration = dur;
+    document.getElementById('outdoorBtn20').classList.toggle('active', dur===20);
+    document.getElementById('outdoorBtn30').classList.toggle('active', dur===30);
+    const tempEl=document.getElementById('outdoorModalTemp');
+    if(currentTemp!==null){
+      tempEl.textContent=`Current temp: ${currentTemp}°F — ${getRotationLabel(currentTemp)}`;
+      tempEl.style.display='block';
+    } else {
+      tempEl.style.display='none';
+    }
+  });
+  document.getElementById('outdoorNameInput').value='';
+  selectedOutdoorDuration = outdoorDuration;
+  document.getElementById('outdoorModal').classList.add('show');
+  setTimeout(()=>document.getElementById('outdoorNameInput').focus(), 300);
+}
+
+function closeOutdoorModal(){
+  document.getElementById('outdoorModal').classList.remove('show');
+}
+
+function selectOutdoorDuration(mins){
+  selectedOutdoorDuration=mins;
+  document.getElementById('outdoorBtn20').classList.toggle('active', mins===20);
+  document.getElementById('outdoorBtn30').classList.toggle('active', mins===30);
+}
+
+// ── Outdoor rotation state ──
+const outdoorRotations = new Map(); // name -> { seconds, totalSeconds, intervalId, cardEl, timerEl }
+
+function startOutdoorRotation(){
+  const name = document.getElementById('outdoorNameInput').value.trim();
+  if(!name){ document.getElementById('outdoorNameInput').focus(); return; }
+  const dur = (selectedOutdoorDuration || outdoorDuration) * 60;
+
+  if(outdoorRotations.has(name)){
+    clearInterval(outdoorRotations.get(name).intervalId);
+  }
+
+  const entry = { seconds:dur, totalSeconds:dur, intervalId:null, cardEl:null, timerEl:null };
+  outdoorRotations.set(name, entry);
+  addLog(name, '#1565c0', 'went outside');
+  renderOutdoorCards();
+  closeOutdoorModal();
+
+  const capturedName = name;
+  entry.intervalId = setInterval(()=>{
+    entry.seconds--;
+    if(entry.timerEl) entry.timerEl.textContent = formatOutdoorTime(entry.seconds);
+    if(entry.seconds<=60 && entry.cardEl) entry.cardEl.classList.add('urgent');
+    if(entry.seconds<=0){
+      clearInterval(entry.intervalId);
+      outdoorExpired(capturedName);
+    }
+  },1000);
+}
+
+function outdoorExpired(name){
+  addLog(name,'#e53935','rotation expired — come inside');
+  toggleAlert('‼️ Rotation Up: '+name);
+  renderOutdoorCards();
+}
+
+function removeOutdoorRotation(name){
+  const e=outdoorRotations.get(name);
+  if(e) clearInterval(e.intervalId);
+  outdoorRotations.delete(name);
+  addLog(name,'#1565c0','came inside');
+  renderOutdoorCards();
+}
+
+function renderOutdoorCards(){
+  const grid=document.getElementById('outdoorGrid');
+  const empty=document.getElementById('outdoorEmpty');
+  grid.innerHTML='';
+
+  if(outdoorRotations.size===0){
+    empty.style.display='';
+    return;
+  }
+  empty.style.display='none';
+
+  outdoorRotations.forEach((entry,name)=>{
+    const card=document.createElement('div');
+    card.className='outdoor-card'+(entry.seconds<=60?' urgent':'');
+    entry.cardEl=card;
+
+    const icon=document.createElement('div'); icon.className='outdoor-card-icon'; icon.textContent='🧥';
+
+    const info=document.createElement('div'); info.className='outdoor-card-info';
+    const nameEl=document.createElement('div'); nameEl.className='outdoor-card-name'; nameEl.textContent=name;
+    const timerEl=document.createElement('div'); timerEl.className='outdoor-card-timer';
+    timerEl.textContent=entry.seconds>0?`Back in ${formatOutdoorTime(entry.seconds)}`:'⚠️ Time\'s up!';
+    entry.timerEl=timerEl;
+    info.appendChild(nameEl); info.appendChild(timerEl);
+
+    const removeBtn=document.createElement('button'); removeBtn.className='outdoor-card-remove'; removeBtn.textContent='✓ In';
+    removeBtn.title='Mark as returned inside';
+    removeBtn.onclick=()=>removeOutdoorRotation(name);
+
+    card.appendChild(icon); card.appendChild(info); card.appendChild(removeBtn);
+    grid.appendChild(card);
+  });
+}
+
+function formatOutdoorTime(s){
+  if(s<=0) return '0:00';
+  const m=Math.floor(s/60), sec=s%60;
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+// Close outdoor modal on backdrop tap
+document.getElementById('outdoorModal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('outdoorModal')) closeOutdoorModal();
+});
 
 function openLog(){
   switchLogTab('activity');
@@ -1284,7 +1646,9 @@ function stopIdleTips(){
 loadSettings();
 buildMainGrid();
 buildHoldGrid();
+renderOutdoorCards();
 updateUI();
+if(outdoorZip) fetchWeather();
 </script>
 </body>
 </html>
