@@ -388,7 +388,10 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 .settings-add-btn:active { transform:scale(.97); }
 
 /* ── Outdoor rotation section ── */
-.outdoor-section { flex-shrink:0; animation:fadeUp .4s ease .35s both; }
+.outdoor-section {
+  flex-shrink:0; animation:fadeUp .4s ease .35s both;
+  border-top:2px solid #e8edf2; padding-top:10px; margin-top:2px;
+}
 .outdoor-title { display:flex; align-items:center; gap:8px; }
 .outdoor-temp-badge {
   font-size:0.72rem; font-weight:700; background:#e8f4fd; color:#1565c0;
@@ -401,27 +404,36 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 }
 .outdoor-grid { display:flex; flex-wrap:wrap; gap:8px; min-height:24px; }
 .outdoor-card {
-  background:white; border:1.5px solid #b3d4f0; border-radius:14px;
-  padding:9px 12px; display:flex; align-items:center; gap:10px;
+  background:white; border:2px solid #b3d4f0; border-radius:16px;
+  padding:10px 14px; display:flex; align-items:center; gap:12px;
   animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
-  transition:box-shadow .2s;
-  min-width:160px;
+  transition:box-shadow .2s, border-color .2s, background .2s;
+  min-width:170px;
+}
+.outdoor-card.warning {
+  border-color:#f59e0b; background:#fffbeb;
 }
 .outdoor-card.urgent {
   border-color:#e53935; background:#fff5f5;
   animation:holdPulse 1s ease-in-out infinite;
 }
-.outdoor-card-icon { font-size:1.2rem; flex-shrink:0; }
+.outdoor-card-icon { font-size:1.4rem; flex-shrink:0; }
 .outdoor-card-info { flex:1; min-width:0; }
-.outdoor-card-name { font-size:0.88rem; font-weight:700; color:#1a3a5c; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.outdoor-card-name { font-size:0.9rem; font-weight:700; color:#1a3a5c; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.outdoor-card.warning .outdoor-card-name { color:#92400e; }
 .outdoor-card.urgent .outdoor-card-name { color:#c00; }
-.outdoor-card-timer { font-size:0.78rem; font-weight:700; color:#1565c0; }
+.outdoor-card-timer { font-size:0.82rem; font-weight:700; color:#1565c0; margin-top:1px; }
+.outdoor-card.warning .outdoor-card-timer { color:#b45309; }
 .outdoor-card.urgent .outdoor-card-timer { color:#e53935; }
 .outdoor-card-remove {
-  background:none; border:none; color:#bbb; font-size:0.85rem; cursor:pointer;
-  padding:2px 4px; border-radius:6px; transition:color .15s, background .15s; flex-shrink:0;
+  background:#e8f5e9; border:1.5px solid #a5d6a7; color:#2e7d32;
+  font-size:0.85rem; font-weight:700; cursor:pointer;
+  padding:8px 14px; border-radius:10px;
+  transition:background .15s, transform .15s; flex-shrink:0;
+  white-space:nowrap;
 }
-.outdoor-card-remove:hover { color:#e53935; background:#fff0f0; }
+.outdoor-card-remove:hover { background:#c8e6c9; }
+.outdoor-card-remove:active { transform:scale(.95); }
 .outdoor-modal-temp {
   font-size:0.9rem; font-weight:600; color:#1565c0; background:#e8f4fd;
   border-radius:10px; padding:8px 12px; margin-bottom:14px; display:none;
@@ -439,7 +451,7 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
       <button class="icon-btn" onclick="openSettings()">⚙️ Settings</button>
     </div>
     <div class="top-right">
-      <button class="clear-all-btn" id="clearAllBtn" onclick="clearAll()">Clear All</button>
+      <button class="clear-all-btn" id="clearAllBtn" onclick="confirmClearAll()">Clear All</button>
       <button class="icon-btn" onclick="openLog()">📋 Log</button>
     </div>
   </div>
@@ -461,7 +473,7 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   <div class="button-grid" id="mainGrid"></div>
 
   <!-- Hold section -->
-  <div class="hold-section">
+  <div class="hold-section" style="border-top:2px solid #e8edf2; padding-top:10px; margin-top:2px;">
     <div class="hold-section-header">
       <div class="hold-section-title">🫳 Holding on...</div>
     </div>
@@ -522,7 +534,6 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   <div class="log-tabs">
     <button class="log-tab active" id="settingsTabAlerts" onclick="switchSettingsTab('alerts')">‼️ Alerts</button>
     <button class="log-tab" id="settingsTabHolds" onclick="switchSettingsTab('holds')">🫳 Holding</button>
-    <button class="log-tab" id="settingsTabDrops" onclick="switchSettingsTab('drops')">⏰ Drops</button>
     <button class="log-tab" id="settingsTabOutdoor" onclick="switchSettingsTab('outdoor')">🌡️ Outdoor</button>
   </div>
   <div class="settings-body">
@@ -799,6 +810,35 @@ function dismissAlert(label){
   syncButtonStates(); renderCards(); updateUI();
 }
 
+let clearAllPending = false;
+let clearAllTimeout = null;
+
+function confirmClearAll(){
+  const btn = document.getElementById('clearAllBtn');
+  if(!clearAllPending){
+    clearAllPending = true;
+    btn.textContent = 'Tap again to confirm';
+    btn.style.background = '#c00';
+    btn.style.borderColor = '#c00';
+    btn.style.color = 'white';
+    clearAllTimeout = setTimeout(()=>{
+      clearAllPending = false;
+      btn.textContent = 'Clear All';
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 3000);
+  } else {
+    clearTimeout(clearAllTimeout);
+    clearAllPending = false;
+    btn.textContent = 'Clear All';
+    btn.style.background = '';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+    clearAll();
+  }
+}
+
 function clearAll(){
   activeAlerts.forEach((e,l)=>{clearInterval(e.intervalId);addLog(l,e.color,'dismissed');});
   activeAlerts.clear();
@@ -957,13 +997,12 @@ function switchSettingsTab(tab){
 const PRESET_COLORS = ['#FFC107','#FF6F00','#E53935','#8E24AA','#6D4C41','#2E7D32','#212121','#00838F','#1565C0','#AD1457','#558B2F','#5D4037'];
 
 function renderSettings(){
-  ['alerts','holds','drops','outdoor'].forEach(t=>{
+  ['alerts','holds','outdoor'].forEach(t=>{
     const el=document.getElementById(`settingsTab${t.charAt(0).toUpperCase()+t.slice(1)}`);
     if(el) el.classList.toggle('active', settingsTab===t);
   });
   if(settingsTab==='alerts') renderAlertSettings();
   else if(settingsTab==='holds') renderHoldSettings();
-  else if(settingsTab==='drops') renderDropSettings();
   else if(settingsTab==='outdoor') renderOutdoorSettings();
 }
 
@@ -1014,6 +1053,30 @@ function renderAlertSettings(){
 
   // Add new alert form
   list.appendChild(buildAddAlertForm());
+
+  // ── Drop alert section ──
+  const dropDivider=document.createElement('div'); dropDivider.style.cssText='border-top:1.5px solid #eee;margin:8px 0 4px;';
+  list.appendChild(dropDivider);
+  const dropTitle=document.createElement('div'); dropTitle.className='settings-section-title'; dropTitle.style.padding='0 4px 6px'; dropTitle.textContent='⏰ Drop Alert Style';
+  const dropHint=document.createElement('div'); dropHint.className='settings-hint'; dropHint.textContent='Mark any alert as a "Drop" to give it the gold dashed border and clock badge treatment.';
+  list.appendChild(dropTitle); list.appendChild(dropHint);
+
+  ALERTS.forEach((a)=>{
+    const row=document.createElement('div'); row.className='settings-alert-row';
+    const topLine=document.createElement('div'); topLine.className='settings-alert-topline';
+    const nameWrap=document.createElement('div'); nameWrap.className='settings-alert-name';
+    const swatch=document.createElement('div'); swatch.className='settings-alert-swatch'; swatch.style.background=a.color;
+    const nameText=document.createElement('span'); nameText.textContent=a.label;
+    nameWrap.appendChild(swatch); nameWrap.appendChild(nameText);
+    const toggle=document.createElement('div'); toggle.className='settings-mode-toggle';
+    const bNorm=document.createElement('button'); bNorm.className='settings-mode-btn'+(!a.scheduledTime?' active':''); bNorm.textContent='Regular';
+    const bDrop=document.createElement('button'); bDrop.className='settings-mode-btn'+(a.scheduledTime?' active':''); bDrop.textContent='⏰ Drop';
+    bNorm.onclick=()=>{ delete a.scheduledTime; saveSettings(); buildMainGrid(); renderSettings(); };
+    bDrop.onclick=()=>{ a.scheduledTime='manual'; saveSettings(); buildMainGrid(); renderSettings(); };
+    toggle.appendChild(bNorm); toggle.appendChild(bDrop);
+    topLine.appendChild(nameWrap); topLine.appendChild(toggle);
+    row.appendChild(topLine); list.appendChild(row);
+  });
 }
 
 function buildAddAlertForm(){
@@ -1399,7 +1462,12 @@ function startOutdoorRotation(){
     entry.seconds--;
     if(entry.timerEl) entry.timerEl.textContent = `Back in ${formatOutdoorTime(entry.seconds)}`;
     if(entry.timerEl && entry.seconds<=0) entry.timerEl.textContent = '⚠️ Time\'s up!';
-    if(entry.seconds<=60 && entry.cardEl) entry.cardEl.classList.add('urgent');
+    if(entry.cardEl){
+      entry.cardEl.classList.toggle('urgent', entry.seconds<=60);
+      entry.cardEl.classList.toggle('warning', entry.seconds<=300 && entry.seconds>60);
+      const iconEl = entry.cardEl.querySelector('.outdoor-card-icon');
+      if(iconEl) iconEl.textContent = entry.seconds<=60 ? '⚠️' : entry.seconds<=300 ? '⏰' : '⏱️';
+    }
     if(entry.seconds<=0){
       clearInterval(entry.intervalId);
       outdoorExpired(capturedName);
@@ -1436,25 +1504,28 @@ function renderOutdoorCards(){
   if(empty) empty.style.display='none';
 
   outdoorRotations.forEach((entry,name)=>{
-    const card=document.createElement('div');
-    card.className='outdoor-card'+(entry.seconds<=60?' urgent':'');
+    const isUrgent  = entry.seconds<=60;
+    const isWarning = entry.seconds<=300 && entry.seconds>60;
 
-    const icon=document.createElement('div'); icon.className='outdoor-card-icon'; icon.textContent='🧥';
+    const card=document.createElement('div');
+    card.className='outdoor-card'+(isUrgent?' urgent':isWarning?' warning':'');
+
+    const icon=document.createElement('div'); icon.className='outdoor-card-icon';
+    icon.textContent = isUrgent ? '⚠️' : isWarning ? '⏰' : '⏱️';
 
     const info=document.createElement('div'); info.className='outdoor-card-info';
     const nameEl=document.createElement('div'); nameEl.className='outdoor-card-name'; nameEl.textContent=name;
     const timerEl=document.createElement('div'); timerEl.className='outdoor-card-timer';
-    timerEl.textContent=entry.seconds>0?`Back in ${formatOutdoorTime(entry.seconds)}`:'⚠️ Time\'s up!';
+    timerEl.textContent=entry.seconds>0?`Back in ${formatOutdoorTime(entry.seconds)}`:'Time\'s up!';
     info.appendChild(nameEl); info.appendChild(timerEl);
 
-    const removeBtn=document.createElement('button'); removeBtn.className='outdoor-card-remove'; removeBtn.textContent='✓ In';
-    removeBtn.title='Mark as returned inside';
+    const removeBtn=document.createElement('button'); removeBtn.className='outdoor-card-remove';
+    removeBtn.textContent='✓ Back In';
     removeBtn.onclick=()=>removeOutdoorRotation(name);
 
     card.appendChild(icon); card.appendChild(info); card.appendChild(removeBtn);
     grid.appendChild(card);
 
-    // Re-link live DOM refs so interval can update them
     entry.cardEl=card;
     entry.timerEl=timerEl;
   });
