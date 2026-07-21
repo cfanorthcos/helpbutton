@@ -542,10 +542,7 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
     </div>
     <div style="margin-bottom:14px;">
       <label style="font-size:0.85rem;font-weight:700;color:#777;display:block;margin-bottom:6px;">Rotation length</label>
-      <div class="settings-mode-toggle" style="width:100%;">
-        <button class="settings-mode-btn active" id="outdoorBtn20" onclick="selectOutdoorDuration(20)">20 min (0–25°)</button>
-        <button class="settings-mode-btn" id="outdoorBtn30" onclick="selectOutdoorDuration(30)">30 min (25–40°)</button>
-      </div>
+      <div class="settings-mode-toggle" style="width:100%;" id="outdoorDurationBtns"></div>
     </div>
     <div class="modal-actions">
       <button class="modal-btn-cancel" onclick="closeOutdoorModal()">Cancel</button>
@@ -1205,10 +1202,12 @@ let outdoorZip = '';
 let currentTemp = null;
 let outdoorDuration = 30;
 
-// Rotation rules — array of { maxTemp, minutes, label }, sorted lowest maxTemp first
+// Rotation rules — array of { minTemp, maxTemp, minutes }
+// A rule applies when currentTemp is between minTemp and maxTemp (inclusive)
+// If no rule matches, no rotation is suggested
 let rotationRules = [
-  { maxTemp:25, minutes:20, label:'Very Cold' },
-  { maxTemp:40, minutes:30, label:'Cold' },
+  { minTemp:0,  maxTemp:25, minutes:20 },
+  { minTemp:25, maxTemp:40, minutes:30 },
 ];
 
 function renderOutdoorSettings(){
@@ -1241,58 +1240,54 @@ function renderOutdoorSettings(){
 
   const rulesRow=document.createElement('div'); rulesRow.className='settings-alert-row'; rulesRow.style.flexDirection='column'; rulesRow.style.gap='10px';
   const rulesTitle=document.createElement('div'); rulesTitle.className='settings-section-title'; rulesTitle.textContent='Rotation Rules';
-  const rulesHint=document.createElement('div'); rulesHint.style.cssText='font-size:0.82rem;color:#aaa;'; rulesHint.textContent='Rules apply when temp is at or below the threshold. Sorted coldest first.';
+  const rulesHint=document.createElement('div'); rulesHint.style.cssText='font-size:0.82rem;color:#aaa;';
+  rulesHint.textContent='Set temp ranges (°F) and how long each rotation should be. Multiple rules can be active at once — they all appear as options in the modal.';
   rulesRow.appendChild(rulesTitle); rulesRow.appendChild(rulesHint);
 
   rotationRules.forEach((rule, idx)=>{
-    const ruleRow=document.createElement('div'); ruleRow.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
+    const ruleRow=document.createElement('div'); ruleRow.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f8f8f8;border-radius:12px;padding:10px 12px;';
 
-    const tempLabel=document.createElement('span'); tempLabel.style.cssText='font-size:0.82rem;font-weight:700;color:#777;white-space:nowrap;'; tempLabel.textContent='Up to';
-    const tempInp=document.createElement('input'); tempInp.type='number'; tempInp.className='settings-seconds-input'; tempInp.style.width='62px';
-    tempInp.value=rule.maxTemp; tempInp.min='-99'; tempInp.max='200';
-    tempInp.oninput=()=>{ rule.maxTemp=parseInt(tempInp.value)||0; saveSettings(); };
-    const tempUnit=document.createElement('span'); tempUnit.style.cssText='font-size:0.82rem;color:#999;white-space:nowrap;'; tempUnit.textContent='°F →';
+    const makeLabel=(t)=>{ const s=document.createElement('span'); s.style.cssText='font-size:0.82rem;font-weight:700;color:#777;white-space:nowrap;'; s.textContent=t; return s; };
+    const makeNumInput=(val,min,max,cb)=>{ const i=document.createElement('input'); i.type='number'; i.className='settings-seconds-input'; i.style.width='64px'; i.value=val; i.min=min; i.max=max; i.oninput=()=>{ cb(parseInt(i.value)||0); saveSettings(); }; return i; };
 
-    const minLabel=document.createElement('span'); minLabel.style.cssText='font-size:0.82rem;font-weight:700;color:#777;white-space:nowrap;'; minLabel.textContent='';
-    const minInp=document.createElement('input'); minInp.type='number'; minInp.className='settings-seconds-input'; minInp.style.width='62px';
-    minInp.value=rule.minutes; minInp.min='1'; minInp.max='120';
-    minInp.oninput=()=>{ rule.minutes=parseInt(minInp.value)||20; saveSettings(); };
-    const minUnit=document.createElement('span'); minUnit.style.cssText='font-size:0.82rem;color:#999;white-space:nowrap;'; minUnit.textContent='min rotation';
+    ruleRow.appendChild(makeLabel('Between'));
+    ruleRow.appendChild(makeNumInput(rule.minTemp,-99,999,(v)=>rule.minTemp=v));
+    ruleRow.appendChild(makeLabel('°F and'));
+    ruleRow.appendChild(makeNumInput(rule.maxTemp,-99,999,(v)=>rule.maxTemp=v));
+    ruleRow.appendChild(makeLabel('°F →'));
+    ruleRow.appendChild(makeNumInput(rule.minutes,1,240,(v)=>rule.minutes=v));
+    ruleRow.appendChild(makeLabel('min'));
 
     const delBtn=document.createElement('button'); delBtn.className='settings-delete-btn'; delBtn.textContent='🗑';
     delBtn.onclick=()=>{ rotationRules.splice(idx,1); saveSettings(); renderSettings(); };
-
-    ruleRow.appendChild(tempLabel); ruleRow.appendChild(tempInp); ruleRow.appendChild(tempUnit);
-    ruleRow.appendChild(minInp); ruleRow.appendChild(minUnit); ruleRow.appendChild(delBtn);
+    ruleRow.appendChild(delBtn);
     rulesRow.appendChild(ruleRow);
   });
 
   const addRuleBtn=document.createElement('button'); addRuleBtn.className='settings-add-btn'; addRuleBtn.style.marginTop='4px'; addRuleBtn.textContent='+ Add Rule';
-  addRuleBtn.onclick=()=>{
-    rotationRules.push({ maxTemp:50, minutes:30, label:'Mild' });
-    rotationRules.sort((a,b)=>a.maxTemp-b.maxTemp);
-    saveSettings(); renderSettings();
-  };
+  addRuleBtn.onclick=()=>{ rotationRules.push({ minTemp:40, maxTemp:70, minutes:30 }); saveSettings(); renderSettings(); };
   rulesRow.appendChild(addRuleBtn);
   list.appendChild(rulesRow);
 }
 
+function getMatchingRules(temp){
+  if(temp===null) return rotationRules;
+  return rotationRules.filter(r=>temp>=r.minTemp && temp<=r.maxTemp);
+}
+
 function getRotationLabel(temp){
-  const sorted=[...rotationRules].sort((a,b)=>a.maxTemp-b.maxTemp);
-  for(const rule of sorted){
-    if(temp<=rule.maxTemp) return `${rule.minutes} min rotations (≤${rule.maxTemp}°F)`;
-  }
-  return `Above ${sorted[sorted.length-1]?.maxTemp||40}°F — rotations optional`;
+  const matches = getMatchingRules(temp);
+  if(!matches.length) return 'No rotation rule matches current temp';
+  return matches.map(r=>`${r.minutes} min (${r.minTemp}–${r.maxTemp}°F)`).join(', ');
 }
 
 function getRotationMinutes(temp){
-  if(temp===null) return rotationRules[rotationRules.length-1]?.minutes||30;
-  const sorted=[...rotationRules].sort((a,b)=>a.maxTemp-b.maxTemp);
-  for(const rule of sorted){
-    if(temp<=rule.maxTemp) return rule.minutes;
-  }
-  return sorted[sorted.length-1]?.minutes||30;
+  const matches = getMatchingRules(temp);
+  if(!matches.length) return rotationRules[0]?.minutes||30;
+  return matches[0].minutes;
 }
+
+let weatherLastUpdated = null;
 
 async function fetchWeather(showInSettings=false){
   if(!outdoorZip || outdoorZip.length<5) return;
@@ -1300,21 +1295,28 @@ async function fetchWeather(showInSettings=false){
     const res = await fetch(`https://wttr.in/${outdoorZip}?format=j1`);
     const data = await res.json();
     const tempC = parseFloat(data.current_condition[0].temp_C);
-    currentTemp = Math.round(tempC * 9/5 + 32); // Convert to °F
+    currentTemp = Math.round(tempC * 9/5 + 32);
     outdoorDuration = getRotationMinutes(currentTemp);
+    weatherLastUpdated = new Date();
     updateOutdoorTempBadge();
     if(showInSettings){
       const d=document.getElementById('settingsTempDisplay');
-      if(d){ d.textContent=`Current temp: ${currentTemp}°F — ${getRotationLabel(currentTemp)}`; d.style.display='block'; }
+      if(d){ d.textContent=`${currentTemp}°F — ${getRotationLabel(currentTemp)} · Updated just now`; d.style.display='block'; }
     }
-  }catch(e){}
+  }catch(e){
+    if(showInSettings){
+      const d=document.getElementById('settingsTempDisplay');
+      if(d){ d.textContent='Could not fetch weather — check zip code'; d.style.color='#c00'; d.style.background='#fff0f0'; d.style.display='block'; }
+    }
+  }
 }
 
 function updateOutdoorTempBadge(){
   const badge=document.getElementById('outdoorTempBadge');
   if(!badge) return;
   if(currentTemp!==null){
-    badge.textContent=`${currentTemp}°F`;
+    const timeStr = weatherLastUpdated ? weatherLastUpdated.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+    badge.textContent=`${currentTemp}°F${timeStr ? ' · '+timeStr : ''}`;
     badge.classList.add('visible');
   } else {
     badge.classList.remove('visible');
@@ -1325,23 +1327,46 @@ function updateOutdoorTempBadge(){
 let selectedOutdoorDuration = null;
 
 function openOutdoorModal(){
-  fetchWeather().then(()=>{
-    const dur = outdoorDuration;
-    selectedOutdoorDuration = dur;
-    document.getElementById('outdoorBtn20').classList.toggle('active', dur===20);
-    document.getElementById('outdoorBtn30').classList.toggle('active', dur===30);
-    const tempEl=document.getElementById('outdoorModalTemp');
-    if(currentTemp!==null){
-      tempEl.textContent=`Current temp: ${currentTemp}°F — ${getRotationLabel(currentTemp)}`;
-      tempEl.style.display='block';
-    } else {
-      tempEl.style.display='none';
-    }
-  });
   document.getElementById('outdoorNameInput').value='';
-  selectedOutdoorDuration = outdoorDuration;
+  selectedOutdoorDuration = getRotationMinutes(currentTemp);
+  buildOutdoorDurationBtns();
+  const tempEl=document.getElementById('outdoorModalTemp');
+  if(currentTemp!==null){
+    tempEl.textContent=`🌡️ ${currentTemp}°F — ${getRotationLabel(currentTemp)}`;
+    tempEl.style.display='block';
+  } else {
+    tempEl.textContent='No temperature data — enter zip in Settings → 🌡️ Outdoor';
+    tempEl.style.display='block';
+  }
   document.getElementById('outdoorModal').classList.add('show');
   setTimeout(()=>document.getElementById('outdoorNameInput').focus(), 300);
+  // Refresh weather in background while modal is open
+  fetchWeather().then(()=>{
+    buildOutdoorDurationBtns();
+    if(currentTemp!==null){
+      tempEl.textContent=`🌡️ ${currentTemp}°F — ${getRotationLabel(currentTemp)}`;
+    }
+  });
+}
+
+function buildOutdoorDurationBtns(){
+  const container=document.getElementById('outdoorDurationBtns');
+  if(!container) return;
+  container.innerHTML='';
+  const matches = getMatchingRules(currentTemp);
+  const rulesToShow = matches.length ? matches : rotationRules;
+
+  // Also always add a manual option
+  const allOptions = rulesToShow.length ? rulesToShow : [{ minutes:20 },{ minutes:30 }];
+  allOptions.forEach(rule=>{
+    const b=document.createElement('button'); b.className='settings-mode-btn';
+    b.textContent=`${rule.minutes} min`;
+    if(rule.minTemp!==undefined) b.textContent+=` (${rule.minTemp}–${rule.maxTemp}°)`;
+    if(selectedOutdoorDuration===rule.minutes) b.classList.add('active');
+    b.onclick=()=>{ selectedOutdoorDuration=rule.minutes; container.querySelectorAll('.settings-mode-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
+    container.appendChild(b);
+  });
+  if(!container.querySelector('.active')) container.querySelector('.settings-mode-btn')?.classList.add('active');
 }
 
 function closeOutdoorModal(){
@@ -1350,17 +1375,15 @@ function closeOutdoorModal(){
 
 function selectOutdoorDuration(mins){
   selectedOutdoorDuration=mins;
-  document.getElementById('outdoorBtn20').classList.toggle('active', mins===20);
-  document.getElementById('outdoorBtn30').classList.toggle('active', mins===30);
 }
 
 // ── Outdoor rotation state ──
-const outdoorRotations = new Map(); // name -> { seconds, totalSeconds, intervalId, cardEl, timerEl }
+const outdoorRotations = new Map();
 
 function startOutdoorRotation(){
   const name = document.getElementById('outdoorNameInput').value.trim();
   if(!name){ document.getElementById('outdoorNameInput').focus(); return; }
-  const dur = (selectedOutdoorDuration || outdoorDuration) * 60;
+  const dur = (selectedOutdoorDuration || getRotationMinutes(currentTemp) || 30) * 60;
 
   if(outdoorRotations.has(name)){
     clearInterval(outdoorRotations.get(name).intervalId);
@@ -1369,19 +1392,22 @@ function startOutdoorRotation(){
   const entry = { seconds:dur, totalSeconds:dur, intervalId:null, cardEl:null, timerEl:null };
   outdoorRotations.set(name, entry);
   addLog(name, '#1565c0', 'went outside');
-  renderOutdoorCards();
   closeOutdoorModal();
 
+  // Start interval FIRST, then render so DOM refs are live before first tick
   const capturedName = name;
   entry.intervalId = setInterval(()=>{
     entry.seconds--;
-    if(entry.timerEl) entry.timerEl.textContent = formatOutdoorTime(entry.seconds);
+    if(entry.timerEl) entry.timerEl.textContent = `Back in ${formatOutdoorTime(entry.seconds)}`;
+    if(entry.timerEl && entry.seconds<=0) entry.timerEl.textContent = '⚠️ Time\'s up!';
     if(entry.seconds<=60 && entry.cardEl) entry.cardEl.classList.add('urgent');
     if(entry.seconds<=0){
       clearInterval(entry.intervalId);
       outdoorExpired(capturedName);
     }
   },1000);
+
+  renderOutdoorCards();
 }
 
 function outdoorExpired(name){
@@ -1648,7 +1674,10 @@ buildMainGrid();
 buildHoldGrid();
 renderOutdoorCards();
 updateUI();
-if(outdoorZip) fetchWeather();
+if(outdoorZip){
+  fetchWeather();
+  setInterval(()=>{ if(outdoorZip) fetchWeather(); }, 10 * 60 * 1000);
+}
 </script>
 </body>
 </html>
