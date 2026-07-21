@@ -477,9 +477,8 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
       </div>
       <button class="hold-add-btn" onclick="openOutdoorModal()">+ Add</button>
     </div>
-    <div class="outdoor-grid" id="outdoorGrid">
-      <div class="outdoor-empty" id="outdoorEmpty">No one outside right now</div>
-    </div>
+    <div class="outdoor-empty" id="outdoorEmpty">No one outside right now</div>
+    <div class="outdoor-grid" id="outdoorGrid"></div>
   </div>
 
 </div>
@@ -1427,18 +1426,18 @@ function removeOutdoorRotation(name){
 function renderOutdoorCards(){
   const grid=document.getElementById('outdoorGrid');
   const empty=document.getElementById('outdoorEmpty');
+  if(!grid) return;
   grid.innerHTML='';
 
   if(outdoorRotations.size===0){
-    empty.style.display='';
+    if(empty) empty.style.display='';
     return;
   }
-  empty.style.display='none';
+  if(empty) empty.style.display='none';
 
   outdoorRotations.forEach((entry,name)=>{
     const card=document.createElement('div');
     card.className='outdoor-card'+(entry.seconds<=60?' urgent':'');
-    entry.cardEl=card;
 
     const icon=document.createElement('div'); icon.className='outdoor-card-icon'; icon.textContent='🧥';
 
@@ -1446,7 +1445,6 @@ function renderOutdoorCards(){
     const nameEl=document.createElement('div'); nameEl.className='outdoor-card-name'; nameEl.textContent=name;
     const timerEl=document.createElement('div'); timerEl.className='outdoor-card-timer';
     timerEl.textContent=entry.seconds>0?`Back in ${formatOutdoorTime(entry.seconds)}`:'⚠️ Time\'s up!';
-    entry.timerEl=timerEl;
     info.appendChild(nameEl); info.appendChild(timerEl);
 
     const removeBtn=document.createElement('button'); removeBtn.className='outdoor-card-remove'; removeBtn.textContent='✓ In';
@@ -1455,6 +1453,10 @@ function renderOutdoorCards(){
 
     card.appendChild(icon); card.appendChild(info); card.appendChild(removeBtn);
     grid.appendChild(card);
+
+    // Re-link live DOM refs so interval can update them
+    entry.cardEl=card;
+    entry.timerEl=timerEl;
   });
 }
 
