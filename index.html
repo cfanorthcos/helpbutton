@@ -23,7 +23,7 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 @keyframes emptyFadeIn { from{opacity:0} to{opacity:1} }
 
 /* ── Layout ── */
-.container { display:flex; flex-direction:column; height:100%; padding:12px; gap:10px; }
+.container { display:flex; flex-direction:column; height:100%; padding:12px; padding-top:max(12px, env(safe-area-inset-top)); padding-left:max(12px, env(safe-area-inset-left)); padding-right:max(12px, env(safe-area-inset-right)); padding-bottom:max(12px, env(safe-area-inset-bottom)); gap:8px; }
 
 /* ── Top bar ── */
 .top-bar { display:flex; align-items:center; justify-content:space-between; flex-shrink:0; animation:fadeDown .4s ease both; }
@@ -49,13 +49,14 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 .timer-opt { flex:1; padding:9px 0; font-size:0.88rem; font-weight:700; color:#888; background:none; border:none; cursor:pointer; transition:background .2s,color .2s; text-align:center; }
 .timer-opt.active { background:#1a1a2e; color:white; }
 
-/* ── Alert cards area (fills remaining space) ── */
-.cards-area { flex:1; min-height:0; display:flex; flex-direction:column; gap:10px; position:relative; }
+/* ── Alert cards area ── */
+.cards-area { flex:0 0 auto; min-height:0; display:flex; flex-direction:column; gap:10px; position:relative; }
+.cards-area.has-cards { flex:1; }
 
 /* Empty state */
 .empty-state {
   flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:10px; border:2px dashed #ddd; border-radius:22px;
+  gap:6px; border:2px dashed #ddd; border-radius:22px; min-height:80px;
   animation:emptyFadeIn .4s ease both;
 }
 .empty-state-icon { font-size:2.4rem; opacity:.35; transition:opacity .35s ease; }
@@ -173,20 +174,15 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 /* ── Alert buttons (bottom row) ── */
 .button-grid {
   display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:10px; flex-shrink:0; animation:fadeUp .4s ease .2s both;
-  transition: flex .3s ease;
-}
-.button-grid.expanded {
-  flex:1; min-height:0;
+  gap:10px; flex:1; min-height:0; animation:fadeUp .4s ease .2s both;
 }
 .alert-btn {
   border:none; border-radius:18px; color:white; font-size:1rem; font-weight:700;
-  padding:16px 12px; min-height:70px; cursor:pointer;
+  padding:16px 12px; min-height:0; cursor:pointer;
   box-shadow:0 4px 6px rgba(0,0,0,0.12); position:relative; overflow:hidden;
-  transition:transform .18s cubic-bezier(.34,1.56,.64,1),filter .18s,box-shadow .18s, min-height .3s ease, font-size .3s ease;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1),filter .18s,box-shadow .18s;
   animation:popIn .35s cubic-bezier(.34,1.56,.64,1) both;
 }
-.button-grid.expanded .alert-btn { min-height:0; font-size:1.3rem; }
 .alert-btn:nth-child(1){animation-delay:.04s} .alert-btn:nth-child(2){animation-delay:.08s}
 .alert-btn:nth-child(3){animation-delay:.12s} .alert-btn:nth-child(4){animation-delay:.16s}
 .alert-btn:nth-child(5){animation-delay:.20s} .alert-btn:nth-child(6){animation-delay:.24s}
@@ -389,9 +385,44 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
 
 /* ── Outdoor rotation section ── */
 .outdoor-section {
-  flex-shrink:0; animation:fadeUp .4s ease .35s both;
-  border-top:2px solid #e8edf2; padding-top:10px; margin-top:2px;
+  flex-shrink:0; padding-top:0; margin-top:0;
 }
+
+/* ── Bottom row: hold + outdoor side by side ── */
+.bottom-row {
+  display:flex; flex-direction:row; gap:10px; flex-shrink:0;
+  border-top:1.5px solid #e8edf2; padding-top:8px; margin-top:2px;
+}
+.bottom-panel {
+  flex:1; display:flex; flex-direction:column; gap:6px; min-width:0;
+}
+.bottom-panel + .bottom-panel {
+  border-left:1.5px solid #e8edf2; padding-left:10px;
+}
+
+/* Hold active items row */
+.hold-active-row { display:flex; flex-wrap:wrap; gap:6px; }
+.hold-active-chip {
+  display:flex; align-items:center; gap:6px; background:#fff8f0;
+  border:1.5px solid #e8600a; border-radius:12px; padding:5px 10px;
+  font-size:0.78rem; font-weight:700; color:#c85000; animation:popIn .3s ease both;
+}
+.hold-active-chip-timer { font-size:0.88rem; font-weight:900; color:#e8600a; }
+.hold-active-chip-timer.urgent { color:#d32f2f; }
+.hold-active-chip-tap { font-size:0.7rem; color:#bbb; cursor:pointer; padding:0 2px; }
+.hold-active-chip-tap:hover { color:#e53935; }
+
+/* Big + add hold button */
+.hold-add-big-btn {
+  display:flex; align-items:center; gap:8px;
+  background:#f4f6f8; border:2px dashed #cdd5dd; border-radius:14px;
+  padding:8px 14px; cursor:pointer; width:100%;
+  transition:background .2s, border-color .2s, transform .15s;
+}
+.hold-add-big-btn:hover { background:#eaf0f6; border-color:#b0bec5; }
+.hold-add-big-btn:active { transform:scale(.97); }
+.hold-add-big-plus { font-size:1.4rem; font-weight:900; color:#90a4ae; line-height:1; }
+.hold-add-big-label { font-size:0.82rem; font-weight:700; color:#90a4ae; }
 .outdoor-title { display:flex; align-items:center; gap:8px; }
 .outdoor-temp-badge {
   font-size:0.72rem; font-weight:700; background:#e8f4fd; color:#1565c0;
@@ -466,31 +497,42 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
     <div class="alert-cards-row" id="alertCardsRow" style="display:none"></div>
   </div>
 
-  <!-- Alert buttons — always at bottom -->
-  <div class="hold-section-header" style="margin-top:4px;">
+  <!-- Alert buttons -->
+  <div class="hold-section-header" style="margin-top:2px;">
     <div class="hold-section-title">‼️ Need help on...</div>
   </div>
   <div class="button-grid" id="mainGrid"></div>
 
-  <!-- Hold section -->
-  <div class="hold-section" style="border-top:2px solid #e8edf2; padding-top:10px; margin-top:2px;">
-    <div class="hold-section-header">
-      <div class="hold-section-title">🫳 Holding on...</div>
-    </div>
-    <div class="hold-grid" id="holdGrid"></div>
-  </div>
+  <!-- Bottom row: Hold + Outdoor side by side -->
+  <div class="bottom-row">
 
-  <!-- Outdoor rotation section -->
-  <div class="outdoor-section" id="outdoorSection">
-    <div class="hold-section-header">
-      <div class="hold-section-title outdoor-title">
-        🌡️ Outside Rotation
-        <span class="outdoor-temp-badge" id="outdoorTempBadge"></span>
+    <!-- Hold section -->
+    <div class="bottom-panel">
+      <div class="hold-section-header">
+        <div class="hold-section-title">🫳 Holding on...</div>
       </div>
-      <button class="hold-add-btn" onclick="openOutdoorModal()">+ Add</button>
+      <div class="hold-active-row" id="holdActiveRow"></div>
+      <button class="hold-add-big-btn" onclick="openHoldPicker()" id="holdAddBigBtn">
+        <span class="hold-add-big-plus">+</span>
+        <span class="hold-add-big-label">Add Hold</span>
+      </button>
+      <!-- Hidden grid keeps holdTimer_ IDs alive for timer refs -->
+      <div id="holdGrid" style="display:none"></div>
     </div>
-    <div class="outdoor-empty" id="outdoorEmpty">No one outside right now</div>
-    <div class="outdoor-grid" id="outdoorGrid"></div>
+
+    <!-- Outdoor rotation section -->
+    <div class="bottom-panel outdoor-section" id="outdoorSection">
+      <div class="hold-section-header">
+        <div class="hold-section-title outdoor-title">
+          🌡️ Outside Rotation
+          <span class="outdoor-temp-badge" id="outdoorTempBadge"></span>
+        </div>
+        <button class="hold-add-btn" onclick="openOutdoorModal()">+ Add</button>
+      </div>
+      <div class="outdoor-empty" id="outdoorEmpty">No one outside right now</div>
+      <div class="outdoor-grid" id="outdoorGrid"></div>
+    </div>
+
   </div>
 
 </div>
@@ -651,7 +693,35 @@ function buildHoldGrid(){
   });
 }
 
-function toggleAlert(label){
+function renderHoldChips(){
+  const row = document.getElementById('holdActiveRow');
+  if(!row) return;
+  row.innerHTML='';
+  holdTimers.forEach((entry, label)=>{
+    const chip = document.createElement('div');
+    chip.className = 'hold-active-chip';
+
+    const namePart = document.createElement('span');
+    namePart.textContent = label;
+
+    const timerPart = document.createElement('span');
+    timerPart.className = 'hold-active-chip-timer' + (entry.seconds<=30?' urgent':'');
+    timerPart.textContent = formatHoldTime(entry.seconds);
+    entry.chipTimerEl = timerPart;
+
+    const editTap = document.createElement('span');
+    editTap.className = 'hold-active-chip-tap'; editTap.textContent = '✏️';
+    editTap.title = 'Edit';
+    editTap.onclick = ()=>{ const prod=HOLD_PRODUCTS.find(p=>p.label===label); openHoldTimeModal(label, prod?.mac||false); };
+
+    chip.appendChild(namePart);
+    chip.appendChild(timerPart);
+    chip.appendChild(editTap);
+    row.appendChild(chip);
+  });
+}
+
+
   if(activeAlerts.has(label)){dismissAlert(label);return;}
   const a=ALERTS.find(x=>x.label===label);
   const start=a.mode==='timed'?a.seconds:null;
@@ -699,10 +769,9 @@ function updateUI(){
   const hasAny=hasAlerts||hasHolds;
   document.getElementById('emptyState').style.display=hasAny?'none':'';
   document.getElementById('alertCardsRow').style.display=hasAny?'flex':'none';
-  document.getElementById('mainGrid').classList.toggle('expanded', !hasAny);
+  document.getElementById('cardsArea').classList.toggle('has-cards', hasAny);
   const cb=document.getElementById('clearAllBtn');
   cb.classList.toggle('visible',hasAny);
-
   if(hasAny) stopIdleTips(); else startIdleTips();
 }
 
@@ -922,6 +991,10 @@ function startHold(){
   entry.intervalId=setInterval(()=>{
     entry.seconds--;
     if(entry.timerEl){entry.timerEl.textContent=formatHoldTime(entry.seconds);if(entry.seconds<=30)entry.timerEl.classList.add('urgent');}
+    if(entry.chipTimerEl){
+      entry.chipTimerEl.textContent=formatHoldTime(entry.seconds);
+      if(entry.seconds<=30) entry.chipTimerEl.classList.add('urgent');
+    }
     if(entry.cardCountdownEl){
       entry.cardCountdownEl.textContent=formatHoldTime(entry.seconds);
       if(entry.seconds<=30){entry.cardCountdownEl.classList.add('urgent'); if(entry.cardEl) entry.cardEl.classList.add('urgent-flash');}
@@ -929,6 +1002,7 @@ function startHold(){
     if(entry.seconds<=0){clearInterval(entry.intervalId);expireHold(cl);}
   },1000);
   closeHoldTimeModal();
+  renderHoldChips();
   renderCards(); updateUI();
 }
 
@@ -940,6 +1014,7 @@ function cancelHold(label){
   const tel=document.getElementById(`holdTimer_${k}`);
   const bel=tel?.closest('.hold-btn');
   if(bel)bel.classList.remove('holding'); if(tel){tel.textContent='';tel.classList.remove('urgent');}
+  renderHoldChips();
   renderCards(); updateUI();
 }
 
@@ -951,6 +1026,7 @@ function expireHold(label){
   const tel=document.getElementById(`holdTimer_${k}`);
   const bel=tel?.closest('.hold-btn');
   if(bel)bel.classList.remove('holding'); if(tel){tel.textContent='';tel.classList.remove('urgent');}
+  renderHoldChips();
   renderCards(); updateUI();
 }
 
@@ -1071,11 +1147,44 @@ function renderAlertSettings(){
     const toggle=document.createElement('div'); toggle.className='settings-mode-toggle';
     const bNorm=document.createElement('button'); bNorm.className='settings-mode-btn'+(!a.scheduledTime?' active':''); bNorm.textContent='Regular';
     const bDrop=document.createElement('button'); bDrop.className='settings-mode-btn'+(a.scheduledTime?' active':''); bDrop.textContent='⏰ Drop';
-    bNorm.onclick=()=>{ delete a.scheduledTime; saveSettings(); buildMainGrid(); renderSettings(); };
+    bNorm.onclick=()=>{ delete a.scheduledTime; delete a.scheduledHHMM; saveSettings(); buildMainGrid(); renderSettings(); };
     bDrop.onclick=()=>{ a.scheduledTime='manual'; saveSettings(); buildMainGrid(); renderSettings(); };
     toggle.appendChild(bNorm); toggle.appendChild(bDrop);
     topLine.appendChild(nameWrap); topLine.appendChild(toggle);
-    row.appendChild(topLine); list.appendChild(row);
+    row.appendChild(topLine);
+
+    if(a.scheduledTime){
+      // Timer mode for drop
+      const secRow=document.createElement('div'); secRow.className='settings-seconds-row';
+      const timerToggle=document.createElement('div'); timerToggle.className='settings-mode-toggle';
+      const bUnlim=document.createElement('button'); bUnlim.className='settings-mode-btn'+(a.mode==='unlimited'?' active':''); bUnlim.textContent='∞ Dismiss Only';
+      const bTimed=document.createElement('button'); bTimed.className='settings-mode-btn'+(a.mode==='timed'?' active':''); bTimed.textContent='⏱ Timed';
+      bUnlim.onclick=()=>{ a.mode='unlimited'; saveSettings(); renderSettings(); };
+      bTimed.onclick=()=>{ a.mode='timed'; saveSettings(); renderSettings(); };
+      timerToggle.appendChild(bUnlim); timerToggle.appendChild(bTimed);
+      secRow.appendChild(timerToggle);
+      if(a.mode==='timed'){
+        const secLabel=document.createElement('label'); secLabel.textContent=''; secLabel.style.marginLeft='8px';
+        const secInp=document.createElement('input'); secInp.type='number'; secInp.min='5'; secInp.max='600'; secInp.value=a.seconds; secInp.className='settings-seconds-input';
+        secInp.oninput=()=>{ const v=parseInt(secInp.value); if(v>=5){ a.seconds=v; saveSettings(); } };
+        const secUnit=document.createElement('span'); secUnit.textContent='seconds'; secUnit.className='settings-seconds-unit';
+        secRow.appendChild(secLabel); secRow.appendChild(secInp); secRow.appendChild(secUnit);
+      }
+      row.appendChild(secRow);
+
+      // Scheduled time row
+      const timeRow=document.createElement('div'); timeRow.className='settings-seconds-row';
+      const timeLabel=document.createElement('label'); timeLabel.textContent='Auto-fire at (Mountain Time)'; timeLabel.style.whiteSpace='nowrap';
+      const timeInp=document.createElement('input'); timeInp.type='time'; timeInp.className='settings-seconds-input'; timeInp.style.width='110px';
+      timeInp.value = a.scheduledHHMM || '';
+      timeInp.oninput=()=>{ a.scheduledHHMM=timeInp.value; a.scheduledTime=timeInp.value||'manual'; saveSettings(); };
+      const clearTime=document.createElement('button'); clearTime.className='settings-delete-btn'; clearTime.textContent='✕ Manual only';
+      clearTime.onclick=()=>{ a.scheduledHHMM=''; a.scheduledTime='manual'; saveSettings(); renderSettings(); };
+      timeRow.appendChild(timeLabel); timeRow.appendChild(timeInp); timeRow.appendChild(clearTime);
+      row.appendChild(timeRow);
+    }
+
+    list.appendChild(row);
   });
 }
 
@@ -1745,12 +1854,34 @@ function stopIdleTips(){
 loadSettings();
 buildMainGrid();
 buildHoldGrid();
+renderHoldChips();
 renderOutdoorCards();
 updateUI();
 if(outdoorZip){
   fetchWeather();
   setInterval(()=>{ if(outdoorZip) fetchWeather(); }, 10 * 60 * 1000);
 }
+
+// ── Scheduled auto-fire for drop alerts ──
+const firedScheduledToday = new Set();
+function getMountainHHMM(){
+  const parts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Denver',hour:'2-digit',minute:'2-digit',hour12:false,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const get=t=>parts.find(p=>p.type===t).value;
+  return { hhmm:`${get('hour')}:${get('minute')}`, dateKey:`${get('year')}-${get('month')}-${get('day')}` };
+}
+function checkScheduledAlerts(){
+  const {hhmm,dateKey}=getMountainHHMM();
+  ALERTS.forEach(a=>{
+    if(!a.scheduledHHMM || a.scheduledHHMM!==hhmm) return;
+    const key=`${a.label}_${dateKey}`;
+    if(!firedScheduledToday.has(key)){
+      firedScheduledToday.add(key);
+      if(!activeAlerts.has(a.label)) toggleAlert(a.label);
+    }
+  });
+}
+checkScheduledAlerts();
+setInterval(checkScheduledAlerts, 20000);
 </script>
 </body>
 </html>
