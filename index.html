@@ -171,7 +171,25 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   content:'⏰'; position:absolute; top:6px; right:9px; font-size:0.95rem;
 }
 
-/* ── Alert buttons (bottom row) ── */
+/* ── Drop alert button grid ── */
+.drop-btn-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px;
+}
+.drop-btn {
+  border:3px dashed rgba(255,255,255,0.8); border-radius:16px; color:white;
+  font-size:0.95rem; font-weight:700; padding:12px 10px; min-height:56px;
+  cursor:pointer; position:relative; overflow:hidden;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s;
+  animation:popIn .35s cubic-bezier(.34,1.56,.64,1) both;
+  text-align:center;
+}
+.drop-btn:hover { transform:translateY(-2px); box-shadow:0 6px 14px rgba(0,0,0,0.2); }
+.drop-btn:active { transform:scale(.95); }
+.drop-btn.active { outline:4px solid white; outline-offset:-4px; filter:brightness(1.15); }
+.drop-btn::after { content:'⏰'; position:absolute; top:5px; right:8px; font-size:0.85rem; }
+.drop-btn .ripple-circle { background:rgba(255,255,255,0.35); }
+
+/* ── Scheduled (drop) card ── */
 .button-grid {
   display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
   gap:10px; flex:1; min-height:0; animation:fadeUp .4s ease .2s both;
@@ -388,17 +406,17 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   flex-shrink:0; padding-top:0; margin-top:0;
 }
 
-/* ── Bottom row: hold + outdoor side by side ── */
-.bottom-row {
-  display:flex; flex-direction:row; gap:10px; flex-shrink:0;
-  border-top:1.5px solid #e8edf2; padding-top:8px; margin-top:2px;
+/* ── Inline + button with chips to the right ── */
+.inline-section-row { display:flex; flex-direction:row; align-items:center; gap:8px; flex-wrap:wrap; }
+.inline-add-btn {
+  flex-shrink:0; width:36px; height:36px; border-radius:10px;
+  border:2px dashed #cdd5dd; background:#f4f6f8;
+  font-size:1.3rem; font-weight:900; color:#90a4ae; line-height:1;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background .2s, border-color .2s, transform .15s;
 }
-.bottom-panel {
-  flex:1; display:flex; flex-direction:column; gap:6px; min-width:0;
-}
-.bottom-panel + .bottom-panel {
-  border-left:1.5px solid #e8edf2; padding-left:10px;
-}
+.inline-add-btn:hover { background:#eaf0f6; border-color:#90a4ae; }
+.inline-add-btn:active { transform:scale(.92); }
 
 /* Hold active items row */
 .hold-active-row { display:flex; flex-wrap:wrap; gap:6px; }
@@ -498,41 +516,32 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   </div>
 
   <!-- Alert buttons -->
-  <div class="hold-section-header" style="margin-top:2px;">
-    <div class="hold-section-title">‼️ Need help on...</div>
+  <div class="hold-section-header" style="margin-top:0; padding-bottom:4px;">
+    <div class="hold-section-title" style="font-size:0.7rem;">‼️ Need help on...</div>
   </div>
   <div class="button-grid" id="mainGrid"></div>
 
-  <!-- Bottom row: Hold + Outdoor side by side -->
-  <div class="bottom-row">
-
-    <!-- Hold section -->
-    <div class="bottom-panel">
-      <div class="hold-section-header">
-        <div class="hold-section-title">🫳 Holding on...</div>
-      </div>
+  <!-- Hold section -->
+  <div style="border-top:1.5px solid #e8edf2; padding-top:8px; margin-top:2px;">
+    <div class="hold-section-title" style="margin-bottom:6px;">🫳 Holding on...</div>
+    <div class="inline-section-row">
+      <button class="inline-add-btn" onclick="openHoldPicker()">+</button>
       <div class="hold-active-row" id="holdActiveRow"></div>
-      <button class="hold-add-big-btn" onclick="openHoldPicker()" id="holdAddBigBtn">
-        <span class="hold-add-big-plus">+</span>
-        <span class="hold-add-big-label">Add Hold</span>
-      </button>
-      <!-- Hidden grid keeps holdTimer_ IDs alive for timer refs -->
-      <div id="holdGrid" style="display:none"></div>
     </div>
+    <div id="holdGrid" style="display:none"></div>
+  </div>
 
-    <!-- Outdoor rotation section -->
-    <div class="bottom-panel outdoor-section" id="outdoorSection">
-      <div class="hold-section-header">
-        <div class="hold-section-title outdoor-title">
-          🌡️ Outside Rotation
-          <span class="outdoor-temp-badge" id="outdoorTempBadge"></span>
-        </div>
-        <button class="hold-add-btn" onclick="openOutdoorModal()">+ Add</button>
-      </div>
-      <div class="outdoor-empty" id="outdoorEmpty">No one outside right now</div>
+  <!-- Outdoor rotation section -->
+  <div style="border-top:1.5px solid #e8edf2; padding-top:8px; margin-top:2px;" id="outdoorSection">
+    <div class="hold-section-title outdoor-title" style="margin-bottom:6px;">
+      🌡️ Outside Rotation
+      <span class="outdoor-temp-badge" id="outdoorTempBadge"></span>
+    </div>
+    <div class="inline-section-row">
+      <button class="inline-add-btn" onclick="openOutdoorModal()">+</button>
+      <div class="outdoor-empty" id="outdoorEmpty" style="display:none; font-size:0.75rem; color:#ccc; font-style:italic; align-self:center;"></div>
       <div class="outdoor-grid" id="outdoorGrid"></div>
     </div>
-
   </div>
 
 </div>
@@ -575,6 +584,7 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
   </div>
   <div class="log-tabs">
     <button class="log-tab active" id="settingsTabAlerts" onclick="switchSettingsTab('alerts')">‼️ Alerts</button>
+    <button class="log-tab" id="settingsTabDrops" onclick="switchSettingsTab('drops')">⏰ Drops</button>
     <button class="log-tab" id="settingsTabHolds" onclick="switchSettingsTab('holds')">🫳 Holding</button>
     <button class="log-tab" id="settingsTabOutdoor" onclick="switchSettingsTab('outdoor')">🌡️ Outdoor</button>
   </div>
@@ -592,9 +602,15 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-se
       <label style="font-size:0.85rem;font-weight:700;color:#777;display:block;margin-bottom:6px;">Team member name</label>
       <input class="settings-text-input" type="text" id="outdoorNameInput" placeholder="e.g. Alex">
     </div>
-    <div style="margin-bottom:14px;">
+    <div style="margin-bottom:10px;">
       <label style="font-size:0.85rem;font-weight:700;color:#777;display:block;margin-bottom:6px;">Rotation length</label>
       <div class="settings-mode-toggle" style="width:100%;" id="outdoorDurationBtns"></div>
+    </div>
+    <div style="margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+      <label style="font-size:0.82rem;font-weight:700;color:#aaa;white-space:nowrap;">or custom:</label>
+      <input class="settings-seconds-input" type="number" id="outdoorCustomMins" min="1" max="120" placeholder="mins"
+        oninput="onOutdoorCustomInput()" style="width:72px;">
+      <span style="font-size:0.82rem;color:#aaa;">min</span>
     </div>
     <div class="modal-actions">
       <button class="modal-btn-cancel" onclick="closeOutdoorModal()">Cancel</button>
@@ -630,8 +646,12 @@ let ALERTS = [
   { label:'Secondary – Mac/Salads',     color:'#2E7D32', dark:false, mode:'unlimited', seconds:30 },
   { label:'Secondary Chutes',           color:'#212121', dark:false, mode:'unlimited', seconds:30 },
   { label:'Prep',                       color:'#00838F', dark:false, mode:'unlimited', seconds:30 },
-  { label:'Drop Mac & Cheese',          color:'#D4A017', dark:false, mode:'unlimited', seconds:30, scheduledTime:'09:40' },
-  { label:'Drop Soup',                  color:'#A0522D', dark:false, mode:'unlimited', seconds:30, scheduledTime:'09:40' },
+];
+
+// Drop alerts — BOH process reminders (separate from floor alerts)
+let DROP_ALERTS = [
+  { label:'Drop Mac & Cheese', color:'#D4A017', dark:false, mode:'unlimited', seconds:30, scheduledHHMM:'09:40' },
+  { label:'Drop Soup',         color:'#A0522D', dark:false, mode:'unlimited', seconds:30, scheduledHHMM:'09:40' },
 ];
 
 let HOLD_PRODUCTS = [
@@ -662,11 +682,28 @@ function buildMainGrid(){
   g.innerHTML='';
   ALERTS.forEach(a=>{
     const b=document.createElement('button');
-    b.className='alert-btn'+(a.scheduledTime?' scheduled-btn':'');
+    b.className='alert-btn';
     b.style.background=a.color; b.style.color=a.dark?'black':'white';
     b.dataset.label=a.label;
     b.innerHTML=`${a.label}<span class="check">✓</span>`;
-    b.addEventListener('click',e=>{spawnRipple(b,e);toggleAlert(a.label);});
+    b.addEventListener('click',e=>{spawnRipple(b,e);toggleAlert(a.label,'alert');});
+    g.appendChild(b);
+  });
+  syncButtonStates();
+}
+
+function buildDropGrid(){
+  const g=document.getElementById('dropGrid');
+  if(!g) return;
+  g.innerHTML='';
+  DROP_ALERTS.forEach(a=>{
+    const b=document.createElement('button');
+    b.className='drop-btn';
+    b.style.background=a.color; b.style.color=a.dark?'black':'white';
+    b.dataset.label=a.label;
+    b.dataset.source='drop';
+    b.textContent=a.label;
+    b.addEventListener('click',e=>{spawnRipple(b,e);toggleAlert(a.label,'drop');});
     g.appendChild(b);
   });
   syncButtonStates();
@@ -721,11 +758,14 @@ function renderHoldChips(){
   });
 }
 
-
+function toggleAlert(label, source='alert'){
   if(activeAlerts.has(label)){dismissAlert(label);return;}
-  const a=ALERTS.find(x=>x.label===label);
+  const a = source==='drop'
+    ? DROP_ALERTS.find(x=>x.label===label)
+    : ALERTS.find(x=>x.label===label);
+  if(!a) return;
   const start=a.mode==='timed'?a.seconds:null;
-  const entry={color:a.color,isDark:a.dark,seconds:start,totalSeconds:start,intervalId:null,countdownEl:null,cardEl:null};
+  const entry={color:a.color,isDark:a.dark,seconds:start,totalSeconds:start,intervalId:null,countdownEl:null,cardEl:null,isDrop:source==='drop'};
   activeAlerts.set(label,entry);
   addLog(label,a.color,'triggered');
   if(start!==null){
@@ -760,7 +800,7 @@ function repeatAlert(label){
 }
 
 function syncButtonStates(){
-  document.querySelectorAll('.alert-btn').forEach(b=>b.classList.toggle('active',activeAlerts.has(b.dataset.label)));
+  document.querySelectorAll('.alert-btn,.drop-btn').forEach(b=>b.classList.toggle('active',activeAlerts.has(b.dataset.label)));
 }
 
 function updateUI(){
@@ -795,22 +835,21 @@ function renderCards(){
   items.forEach(item=>{
     if(item.type==='alert'){
       const { label, entry } = item;
-      const alertDef = ALERTS.find(a=>a.label===label);
-      const isScheduled = !!(alertDef && alertDef.scheduledTime);
+      const isDrop = !!entry.isDrop;
       const card=document.createElement('div');
-      card.className='alert-card'+(isScheduled?' scheduled-card':'');
+      card.className='alert-card'+(isDrop?' scheduled-card':'');
       card.style.background=entry.color; card.style.color=entry.isDark?'black':'white';
       card.style.animationDelay=delay+'s'; delay+=.06;
       if(entry.seconds!==null&&entry.seconds<=5)card.classList.add('urgent-flash');
       entry.cardEl=card;
 
       const badge=document.createElement('div');
-      badge.className = isScheduled ? 'scheduled-card-badge' : 'hold-card-badge';
-      badge.textContent = isScheduled ? '⏰' : '‼️';
+      badge.className = isDrop ? 'scheduled-card-badge' : 'hold-card-badge';
+      badge.textContent = isDrop ? '⏰' : '‼️';
       card.appendChild(badge);
 
-      if(isScheduled){
-        const tag=document.createElement('div'); tag.className='scheduled-card-tag'; tag.textContent='⏰ TIME-SENSITIVE DROP';
+      if(isDrop){
+        const tag=document.createElement('div'); tag.className='scheduled-card-tag'; tag.textContent='⏰ BOH DROP';
         card.appendChild(tag);
       }
 
@@ -1073,11 +1112,12 @@ function switchSettingsTab(tab){
 const PRESET_COLORS = ['#FFC107','#FF6F00','#E53935','#8E24AA','#6D4C41','#2E7D32','#212121','#00838F','#1565C0','#AD1457','#558B2F','#5D4037'];
 
 function renderSettings(){
-  ['alerts','holds','outdoor'].forEach(t=>{
+  ['alerts','drops','holds','outdoor'].forEach(t=>{
     const el=document.getElementById(`settingsTab${t.charAt(0).toUpperCase()+t.slice(1)}`);
     if(el) el.classList.toggle('active', settingsTab===t);
   });
   if(settingsTab==='alerts') renderAlertSettings();
+  else if(settingsTab==='drops') renderDropSettings();
   else if(settingsTab==='holds') renderHoldSettings();
   else if(settingsTab==='outdoor') renderOutdoorSettings();
 }
@@ -1129,63 +1169,6 @@ function renderAlertSettings(){
 
   // Add new alert form
   list.appendChild(buildAddAlertForm());
-
-  // ── Drop alert section ──
-  const dropDivider=document.createElement('div'); dropDivider.style.cssText='border-top:1.5px solid #eee;margin:8px 0 4px;';
-  list.appendChild(dropDivider);
-  const dropTitle=document.createElement('div'); dropTitle.className='settings-section-title'; dropTitle.style.padding='0 4px 6px'; dropTitle.textContent='⏰ Drop Alert Style';
-  const dropHint=document.createElement('div'); dropHint.className='settings-hint'; dropHint.textContent='Mark any alert as a "Drop" to give it the gold dashed border and clock badge treatment.';
-  list.appendChild(dropTitle); list.appendChild(dropHint);
-
-  ALERTS.forEach((a)=>{
-    const row=document.createElement('div'); row.className='settings-alert-row';
-    const topLine=document.createElement('div'); topLine.className='settings-alert-topline';
-    const nameWrap=document.createElement('div'); nameWrap.className='settings-alert-name';
-    const swatch=document.createElement('div'); swatch.className='settings-alert-swatch'; swatch.style.background=a.color;
-    const nameText=document.createElement('span'); nameText.textContent=a.label;
-    nameWrap.appendChild(swatch); nameWrap.appendChild(nameText);
-    const toggle=document.createElement('div'); toggle.className='settings-mode-toggle';
-    const bNorm=document.createElement('button'); bNorm.className='settings-mode-btn'+(!a.scheduledTime?' active':''); bNorm.textContent='Regular';
-    const bDrop=document.createElement('button'); bDrop.className='settings-mode-btn'+(a.scheduledTime?' active':''); bDrop.textContent='⏰ Drop';
-    bNorm.onclick=()=>{ delete a.scheduledTime; delete a.scheduledHHMM; saveSettings(); buildMainGrid(); renderSettings(); };
-    bDrop.onclick=()=>{ a.scheduledTime='manual'; saveSettings(); buildMainGrid(); renderSettings(); };
-    toggle.appendChild(bNorm); toggle.appendChild(bDrop);
-    topLine.appendChild(nameWrap); topLine.appendChild(toggle);
-    row.appendChild(topLine);
-
-    if(a.scheduledTime){
-      // Timer mode for drop
-      const secRow=document.createElement('div'); secRow.className='settings-seconds-row';
-      const timerToggle=document.createElement('div'); timerToggle.className='settings-mode-toggle';
-      const bUnlim=document.createElement('button'); bUnlim.className='settings-mode-btn'+(a.mode==='unlimited'?' active':''); bUnlim.textContent='∞ Dismiss Only';
-      const bTimed=document.createElement('button'); bTimed.className='settings-mode-btn'+(a.mode==='timed'?' active':''); bTimed.textContent='⏱ Timed';
-      bUnlim.onclick=()=>{ a.mode='unlimited'; saveSettings(); renderSettings(); };
-      bTimed.onclick=()=>{ a.mode='timed'; saveSettings(); renderSettings(); };
-      timerToggle.appendChild(bUnlim); timerToggle.appendChild(bTimed);
-      secRow.appendChild(timerToggle);
-      if(a.mode==='timed'){
-        const secLabel=document.createElement('label'); secLabel.textContent=''; secLabel.style.marginLeft='8px';
-        const secInp=document.createElement('input'); secInp.type='number'; secInp.min='5'; secInp.max='600'; secInp.value=a.seconds; secInp.className='settings-seconds-input';
-        secInp.oninput=()=>{ const v=parseInt(secInp.value); if(v>=5){ a.seconds=v; saveSettings(); } };
-        const secUnit=document.createElement('span'); secUnit.textContent='seconds'; secUnit.className='settings-seconds-unit';
-        secRow.appendChild(secLabel); secRow.appendChild(secInp); secRow.appendChild(secUnit);
-      }
-      row.appendChild(secRow);
-
-      // Scheduled time row
-      const timeRow=document.createElement('div'); timeRow.className='settings-seconds-row';
-      const timeLabel=document.createElement('label'); timeLabel.textContent='Auto-fire at (Mountain Time)'; timeLabel.style.whiteSpace='nowrap';
-      const timeInp=document.createElement('input'); timeInp.type='time'; timeInp.className='settings-seconds-input'; timeInp.style.width='110px';
-      timeInp.value = a.scheduledHHMM || '';
-      timeInp.oninput=()=>{ a.scheduledHHMM=timeInp.value; a.scheduledTime=timeInp.value||'manual'; saveSettings(); };
-      const clearTime=document.createElement('button'); clearTime.className='settings-delete-btn'; clearTime.textContent='✕ Manual only';
-      clearTime.onclick=()=>{ a.scheduledHHMM=''; a.scheduledTime='manual'; saveSettings(); renderSettings(); };
-      timeRow.appendChild(timeLabel); timeRow.appendChild(timeInp); timeRow.appendChild(clearTime);
-      row.appendChild(timeRow);
-    }
-
-    list.appendChild(row);
-  });
 }
 
 function buildAddAlertForm(){
@@ -1251,6 +1234,107 @@ function buildAddAlertForm(){
 function isLightColor(hex){
   const r=parseInt(hex.substr(1,2),16), g=parseInt(hex.substr(3,2),16), b=parseInt(hex.substr(5,2),16);
   return (r*0.299+g*0.587+b*0.114) > 165;
+}
+
+function renderDropSettings(){
+  const list=document.getElementById('settingsAlertList');
+  list.innerHTML='';
+
+  const hint=document.createElement('div'); hint.className='settings-hint';
+  hint.textContent='BOH process drop alerts appear in their own section below the floor alerts. Each can have an optional scheduled auto-fire time (Mountain Time).';
+  list.appendChild(hint);
+
+  DROP_ALERTS.forEach((a,idx)=>{
+    const row=document.createElement('div'); row.className='settings-alert-row';
+
+    // Top line: swatch + name + delete
+    const topLine=document.createElement('div'); topLine.className='settings-alert-topline';
+    const nameWrap=document.createElement('div'); nameWrap.className='settings-alert-name';
+    const swatch=document.createElement('div'); swatch.className='settings-alert-swatch'; swatch.style.background=a.color;
+    const nameText=document.createElement('span'); nameText.textContent=a.label;
+    nameWrap.appendChild(swatch); nameWrap.appendChild(nameText);
+    const delBtn=document.createElement('button'); delBtn.className='settings-delete-btn'; delBtn.textContent='🗑';
+    delBtn.onclick=()=>{ DROP_ALERTS.splice(idx,1); saveSettings(); buildDropGrid(); renderSettings(); };
+    topLine.appendChild(nameWrap); topLine.appendChild(delBtn);
+    row.appendChild(topLine);
+
+    // Timer mode
+    const secRow=document.createElement('div'); secRow.className='settings-seconds-row';
+    const timerToggle=document.createElement('div'); timerToggle.className='settings-mode-toggle';
+    const bUnlim=document.createElement('button'); bUnlim.className='settings-mode-btn'+(a.mode==='unlimited'?' active':''); bUnlim.textContent='∞ Dismiss Only';
+    const bTimed=document.createElement('button'); bTimed.className='settings-mode-btn'+(a.mode==='timed'?' active':''); bTimed.textContent='⏱ Timed';
+    bUnlim.onclick=()=>{ a.mode='unlimited'; saveSettings(); renderSettings(); };
+    bTimed.onclick=()=>{ a.mode='timed'; saveSettings(); renderSettings(); };
+    timerToggle.appendChild(bUnlim); timerToggle.appendChild(bTimed);
+    secRow.appendChild(timerToggle);
+    if(a.mode==='timed'){
+      const secInp=document.createElement('input'); secInp.type='number'; secInp.min='5'; secInp.max='600'; secInp.value=a.seconds; secInp.className='settings-seconds-input'; secInp.style.marginLeft='8px';
+      secInp.oninput=()=>{ const v=parseInt(secInp.value); if(v>=5){ a.seconds=v; saveSettings(); } };
+      const secUnit=document.createElement('span'); secUnit.textContent='seconds'; secUnit.className='settings-seconds-unit';
+      secRow.appendChild(secInp); secRow.appendChild(secUnit);
+    }
+    row.appendChild(secRow);
+
+    // Scheduled auto-fire time
+    const timeRow=document.createElement('div'); timeRow.className='settings-seconds-row'; timeRow.style.marginTop='6px';
+    const timeLabel=document.createElement('label'); timeLabel.textContent='Auto-fire (MT)'; timeLabel.style.cssText='font-size:0.82rem;font-weight:700;color:#777;white-space:nowrap;';
+    const timeInp=document.createElement('input'); timeInp.type='time'; timeInp.className='settings-seconds-input'; timeInp.style.width='110px';
+    timeInp.value=a.scheduledHHMM||'';
+    timeInp.oninput=()=>{ a.scheduledHHMM=timeInp.value; saveSettings(); };
+    const clearBtn=document.createElement('button'); clearBtn.className='settings-delete-btn'; clearBtn.textContent='✕ Manual';
+    clearBtn.onclick=()=>{ a.scheduledHHMM=''; saveSettings(); renderSettings(); };
+    timeRow.appendChild(timeLabel); timeRow.appendChild(timeInp); timeRow.appendChild(clearBtn);
+    row.appendChild(timeRow);
+
+    list.appendChild(row);
+  });
+
+  // Add new drop form
+  list.appendChild(buildAddDropForm());
+}
+
+function buildAddDropForm(){
+  const wrap=document.createElement('div'); wrap.className='settings-add-form';
+  wrap.innerHTML=`
+    <div class="settings-add-title">+ Add BOH Drop</div>
+    <input class="settings-text-input" id="newDropName" placeholder="e.g. Drop Mac & Cheese">
+    <div class="settings-color-row">
+      <div class="settings-color-grid" id="newDropColors"></div>
+      <label class="settings-custom-color-wrap" id="dropCustomColorWrap">
+        <input type="color" id="newDropCustomColor" class="settings-custom-color-input" value="${PRESET_COLORS[0]}">
+        <span class="settings-custom-color-plus">+</span>
+      </label>
+    </div>
+    <div class="settings-color-preview" id="dropColorPreviewRow">
+      <div class="settings-color-preview-swatch" id="dropColorPreviewSwatch" style="background:${PRESET_COLORS[0]}"></div>
+      <span id="dropColorPreviewHex">${PRESET_COLORS[0]}</span>
+    </div>
+  `;
+  const colorGrid=wrap.querySelector('#newDropColors');
+  const customInput=wrap.querySelector('#newDropCustomColor');
+  const previewSwatch=wrap.querySelector('#dropColorPreviewSwatch');
+  const previewHex=wrap.querySelector('#dropColorPreviewHex');
+  let chosenColor=PRESET_COLORS[0];
+
+  function setChosen(c){ chosenColor=c; previewSwatch.style.background=c; previewHex.textContent=c.toUpperCase(); }
+
+  PRESET_COLORS.forEach((c,i)=>{
+    const sw=document.createElement('button'); sw.className='settings-color-swatch'+(i===0?' selected':''); sw.style.background=c;
+    sw.onclick=()=>{ colorGrid.querySelectorAll('.settings-color-swatch').forEach(x=>x.classList.remove('selected')); sw.classList.add('selected'); customInput.parentElement.classList.remove('selected'); setChosen(c); };
+    colorGrid.appendChild(sw);
+  });
+  customInput.addEventListener('input',()=>{ colorGrid.querySelectorAll('.settings-color-swatch').forEach(x=>x.classList.remove('selected')); customInput.parentElement.classList.add('selected'); setChosen(customInput.value); });
+
+  const addBtn=document.createElement('button'); addBtn.className='settings-add-btn'; addBtn.textContent='Add Drop Alert';
+  addBtn.onclick=()=>{
+    const name=document.getElementById('newDropName').value.trim();
+    if(!name){ document.getElementById('newDropName').focus(); return; }
+    if(DROP_ALERTS.some(a=>a.label.toLowerCase()===name.toLowerCase())){ alert('A drop with that name already exists.'); return; }
+    DROP_ALERTS.push({ label:name, color:chosenColor, dark:isLightColor(chosenColor), mode:'unlimited', seconds:30, scheduledHHMM:'' });
+    saveSettings(); buildDropGrid(); renderSettings();
+  };
+  wrap.appendChild(addBtn);
+  return wrap;
 }
 
 function renderHoldSettings(){
@@ -1319,6 +1403,7 @@ function saveSettings(){
   try{
     localStorage.setItem('kitchenAlerts_v2', JSON.stringify(ALERTS));
     localStorage.setItem('kitchenHolds_v2', JSON.stringify(HOLD_PRODUCTS));
+    localStorage.setItem('kitchenDropAlerts_v2', JSON.stringify(DROP_ALERTS));
     localStorage.setItem('kitchenZip', outdoorZip);
     localStorage.setItem('kitchenRotationRules', JSON.stringify(rotationRules));
   }catch(e){}
@@ -1326,46 +1411,17 @@ function saveSettings(){
 
 function loadSettings(){
   try{
-    const a = localStorage.getItem('kitchenAlerts_v2');
-    if(a){ const parsed=JSON.parse(a); if(Array.isArray(parsed) && parsed.length) ALERTS = parsed; }
-    const h = localStorage.getItem('kitchenHolds_v2');
-    if(h){ const parsed=JSON.parse(h); if(Array.isArray(parsed) && parsed.length) HOLD_PRODUCTS = parsed; }
-    const z = localStorage.getItem('kitchenZip');
-    if(z) outdoorZip = z;
-    const r = localStorage.getItem('kitchenRotationRules');
-    if(r){ const parsed=JSON.parse(r); if(Array.isArray(parsed) && parsed.length) rotationRules = parsed; }
+    const a=localStorage.getItem('kitchenAlerts_v2');
+    if(a){ const p=JSON.parse(a); if(Array.isArray(p)&&p.length) ALERTS=p; }
+    const h=localStorage.getItem('kitchenHolds_v2');
+    if(h){ const p=JSON.parse(h); if(Array.isArray(p)&&p.length) HOLD_PRODUCTS=p; }
+    const d=localStorage.getItem('kitchenDropAlerts_v2');
+    if(d){ const p=JSON.parse(d); if(Array.isArray(p)) DROP_ALERTS=p; }
+    const z=localStorage.getItem('kitchenZip');
+    if(z) outdoorZip=z;
+    const r=localStorage.getItem('kitchenRotationRules');
+    if(r){ const p=JSON.parse(r); if(Array.isArray(p)&&p.length) rotationRules=p; }
   }catch(e){}
-}
-
-// ── Drop settings tab ──
-function renderDropSettings(){
-  const list=document.getElementById('settingsAlertList');
-  list.innerHTML='';
-
-  const hint=document.createElement('div'); hint.className='settings-hint';
-  hint.textContent='Time-sensitive drop alerts have a distinct look (dashed gold border, ⏰ badge). Toggle the flag below to mark any alert as a drop.';
-  list.appendChild(hint);
-
-  ALERTS.forEach((a,idx)=>{
-    const row=document.createElement('div'); row.className='settings-alert-row';
-    const topLine=document.createElement('div'); topLine.className='settings-alert-topline';
-
-    const nameWrap=document.createElement('div'); nameWrap.className='settings-alert-name';
-    const swatch=document.createElement('div'); swatch.className='settings-alert-swatch'; swatch.style.background=a.color;
-    const nameText=document.createElement('span'); nameText.textContent=a.label;
-    nameWrap.appendChild(swatch); nameWrap.appendChild(nameText);
-
-    const toggle=document.createElement('div'); toggle.className='settings-mode-toggle';
-    const bNorm=document.createElement('button'); bNorm.className='settings-mode-btn'+(!a.scheduledTime?' active':''); bNorm.textContent='Regular Alert';
-    const bDrop=document.createElement('button'); bDrop.className='settings-mode-btn'+(a.scheduledTime?' active':''); bDrop.textContent='⏰ Drop Alert';
-    bNorm.onclick=()=>{ delete a.scheduledTime; saveSettings(); buildMainGrid(); renderSettings(); };
-    bDrop.onclick=()=>{ a.scheduledTime='manual'; saveSettings(); buildMainGrid(); renderSettings(); };
-    toggle.appendChild(bNorm); toggle.appendChild(bDrop);
-
-    topLine.appendChild(nameWrap); topLine.appendChild(toggle);
-    row.appendChild(topLine);
-    list.appendChild(row);
-  });
 }
 
 // ── Outdoor rotation settings tab ──
@@ -1497,8 +1553,18 @@ function updateOutdoorTempBadge(){
 // ── Outdoor modal ──
 let selectedOutdoorDuration = null;
 
+function onOutdoorCustomInput(){
+  const val = parseInt(document.getElementById('outdoorCustomMins').value);
+  if(val && val > 0){
+    // Deselect preset buttons since custom overrides
+    document.querySelectorAll('#outdoorDurationBtns .settings-mode-btn').forEach(b=>b.classList.remove('active'));
+    selectedOutdoorDuration = val;
+  }
+}
+
 function openOutdoorModal(){
   document.getElementById('outdoorNameInput').value='';
+  document.getElementById('outdoorCustomMins').value='';
   selectedOutdoorDuration = getRotationMinutes(currentTemp);
   buildOutdoorDurationBtns();
   const tempEl=document.getElementById('outdoorModalTemp');
@@ -1554,7 +1620,8 @@ const outdoorRotations = new Map();
 function startOutdoorRotation(){
   const name = document.getElementById('outdoorNameInput').value.trim();
   if(!name){ document.getElementById('outdoorNameInput').focus(); return; }
-  const dur = (selectedOutdoorDuration || getRotationMinutes(currentTemp) || 30) * 60;
+  const customMins = parseInt(document.getElementById('outdoorCustomMins').value);
+  const dur = ((customMins && customMins > 0 ? customMins : null) || selectedOutdoorDuration || getRotationMinutes(currentTemp) || 30) * 60;
 
   if(outdoorRotations.has(name)){
     clearInterval(outdoorRotations.get(name).intervalId);
@@ -1871,12 +1938,12 @@ function getMountainHHMM(){
 }
 function checkScheduledAlerts(){
   const {hhmm,dateKey}=getMountainHHMM();
-  ALERTS.forEach(a=>{
+  DROP_ALERTS.forEach(a=>{
     if(!a.scheduledHHMM || a.scheduledHHMM!==hhmm) return;
     const key=`${a.label}_${dateKey}`;
     if(!firedScheduledToday.has(key)){
       firedScheduledToday.add(key);
-      if(!activeAlerts.has(a.label)) toggleAlert(a.label);
+      if(!activeAlerts.has(a.label)) toggleAlert(a.label,'drop');
     }
   });
 }
